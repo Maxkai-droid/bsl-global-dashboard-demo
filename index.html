@@ -35,7 +35,7 @@
         <span><strong>BSL Health</strong><small>Manufacturing quality</small></span>
       </a>
       <div class="d-flex align-items-center gap-2">
-        <span class="demo-badge">Synthetic demo</span>
+        <span class="demo-badge">Encrypted read only</span>
         <a class="nav-link active px-2" href="#dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
       </div>
     </div>
@@ -45,9 +45,9 @@
     <section class="dashboard-hero rounded-4 shadow-sm p-4 p-lg-5 mb-4">
       <div class="row align-items-end position-relative">
         <div class="col-lg-8">
-          <p class="eyebrow">MANUFACTURING QUALITY · PUBLIC SYNTHETIC DEMO</p>
+          <p class="eyebrow">MANUFACTURING QUALITY · ENCRYPTED READ-ONLY REPLICA</p>
           <h1 class="display-6 fw-bold mb-2">BSL Failure Health Dashboard</h1>
-          <p class="mb-0">Read-only GitHub Pages replica of the local operational dashboard. Every record is fictional.</p>
+          <p class="mb-0">Encrypted outbound snapshot of the local Azure DevOps BSL dashboard.</p>
         </div>
         <div class="col-lg-4 d-flex justify-content-lg-end">
           <div class="health-legend"><span class="dot green"></span>Healthy <span class="dot yellow"></span>Watch <span class="dot red"></span>Risk</div>
@@ -66,7 +66,7 @@
           <div class="col-6 col-xl-2 sync-meta"><small>Generated</small><b id="generated-at">Loading</b></div>
           <div class="col-6 col-xl-2 sync-meta"><small>Source revision</small><b id="source-revision">--</b></div>
           <div class="col-6 col-xl-2 sync-meta"><small>Published items</small><b id="published-count">--</b></div>
-          <div class="col-xl-3 sync-meta"><small>Security boundary</small><b>Synthetic data only · read-only site</b></div>
+          <div class="col-xl-3 sync-meta"><small>Security boundary</small><b>AES-GCM ciphertext · read-only site</b></div>
         </div>
       </div>
     </section>
@@ -81,24 +81,36 @@
       <div class="card-body px-3 px-lg-4 pt-2">
         <form id="dashboard-filters" class="row g-3 align-items-end">
           <div class="col-12 col-lg-4">
-            <label class="form-label" for="search">Search ADO, site, block, state, or classification</label>
+            <label class="form-label" for="search">Search ADO, block, task, code, or owner</label>
             <div class="input-group input-group-sm">
               <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-              <input id="search" class="form-control" placeholder="Example: DEMO-003, GB200">
+              <input id="search" class="form-control" placeholder="Example: 3879366, FPGATask, 60075">
+              <button class="btn btn-primary" type="submit">Search</button>
             </div>
           </div>
+          <div class="col-6 col-md-3 col-lg-2"><label class="form-label" for="from-date">From date</label><input id="from-date" class="form-control form-control-sm" type="date"></div>
+          <div class="col-6 col-md-3 col-lg-2"><label class="form-label" for="through-date">Through date</label><input id="through-date" class="form-control form-control-sm" type="date"></div>
+          <div class="col-12 col-md-auto"><button id="apply-period" class="btn btn-sm btn-outline-primary" type="submit"><i class="bi bi-funnel"></i> Apply period</button></div>
           <div class="col-6 col-md-4 col-lg-2"><label class="form-label" for="site-filter">Site</label><select id="site-filter" class="form-select form-select-sm"><option value="">All</option></select></div>
           <div class="col-6 col-md-4 col-lg-2"><label class="form-label" for="block-filter">Building Block</label><select id="block-filter" class="form-select form-select-sm"><option value="">All</option></select></div>
           <div class="col-6 col-md-4 col-lg-2"><label class="form-label" for="state-filter">State</label><select id="state-filter" class="form-select form-select-sm"><option value="">All</option></select></div>
           <div class="col-6 col-md-4 col-lg-2"><label class="form-label" for="class-filter">Failure class</label><select id="class-filter" class="form-select form-select-sm"><option value="">All</option></select></div>
+          <div class="col-6 col-md-4 col-lg-2"><label class="form-label" for="validation-filter">Validation</label><select id="validation-filter" class="form-select form-select-sm"><option value="">All</option></select></div>
+          <div class="col-6 col-md-4 col-lg-2"><label class="form-label" for="age-filter">Age</label><select id="age-filter" class="form-select form-select-sm"><option value="">All</option><option>0-7</option><option>8-14</option><option>15-30</option><option>&gt;30</option></select></div>
         </form>
         <div class="quick-filter-row border-top mt-3 pt-3">
+          <span class="quick-filter-label">Period</span>
+          <button type="button" class="quick-filter" data-period="month"><i class="bi bi-calendar-month"></i> Current month</button>
+          <button type="button" class="quick-filter" data-period="all"><i class="bi bi-calendar3"></i> All data</button>
           <span class="quick-filter-label">Focus</span>
-          <button type="button" class="quick-filter" data-focus="critical"><i class="bi bi-exclamation-diamond"></i> Critical open</button>
-          <button type="button" class="quick-filter" data-focus="ai"><i class="bi bi-stars"></i> AI review</button>
-          <button type="button" class="quick-filter" data-focus="aged"><i class="bi bi-clock-history"></i> Over 14 days</button>
+          <button type="button" class="quick-filter" data-focus="attention"><i class="bi bi-exclamation-diamond"></i> High attention</button>
+          <button type="button" class="quick-filter" data-focus="diagnostic"><i class="bi bi-bug"></i> Missing diagnostic</button>
+          <button type="button" class="quick-filter" data-focus="repair"><i class="bi bi-tools"></i> No repair action</button>
+          <button type="button" class="quick-filter" data-focus="owner"><i class="bi bi-person-x"></i> Unassigned</button>
+          <button type="button" class="quick-filter" data-focus="delay"><i class="bi bi-clock-history"></i> Missing delay record</button>
           <button id="reset-filters" type="button" class="btn btn-sm btn-link ms-auto text-decoration-none"><i class="bi bi-arrow-counterclockwise"></i> Reset all</button>
         </div>
+        <div id="active-filters" class="filter-chips mt-3" aria-label="Active filters" hidden></div>
       </div>
     </section>
 
@@ -115,7 +127,7 @@
     </section>
 
     <section class="card app-card impact-card mb-4">
-      <div class="card-header bg-white border-0 pt-3 px-4"><h2 class="section-title mb-1"><i class="bi bi-activity text-danger me-1"></i> BSL operational impact</h2><p class="section-subtitle">Classification, affected quantity, and AI-completeness indicators.</p></div>
+      <div class="card-header bg-white border-0 pt-3 px-4"><h2 class="section-title mb-1"><i class="bi bi-activity text-danger me-1"></i> BSL operational impact</h2><p class="section-subtitle">Classification, production delay, affected quantity, and data-completeness indicators.</p></div>
       <div class="card-body px-4 pt-2"><div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-3" id="impact-grid"></div></div>
     </section>
 
@@ -137,7 +149,7 @@
     <section class="row g-4 mb-4">
       <div class="col-lg-6">
         <article class="card app-card chart-panel h-100">
-          <div class="card-header bg-white border-0 pt-3 px-4"><h2 class="section-title mb-1">Site impact</h2><p class="section-subtitle">Compare issue volume and explicitly reported affected units.</p></div>
+          <div class="card-header bg-white border-0 pt-3 px-4"><h2 class="section-title mb-1">Site impact</h2><p class="section-subtitle">Compare issue volume and explicitly reported affected units. Click a bar to filter by site.</p></div>
           <div class="card-body pt-1">
             <div class="encrypted-chart-tabs" role="tablist">
               <button id="issues-created-tab" class="active" type="button" role="tab" aria-selected="true">Issues Created</button>
@@ -147,30 +159,39 @@
           </div>
         </article>
       </div>
-      <div class="col-lg-6"><article class="card app-card chart-panel h-100"><div class="card-header bg-white border-0 pt-3 px-4"><h2 class="section-title mb-1">Created by week</h2><p class="section-subtitle">Synthetic six-week trend.</p></div><div class="card-body"><div class="chart-wrap"><canvas id="trend-chart"></canvas></div></div></article></div>
+      <div class="col-lg-6"><article class="card app-card chart-panel h-100"><div class="card-header bg-white border-0 pt-3 px-4"><h2 class="section-title mb-1">Created by week</h2><p class="section-subtitle">Filtered six-week trend. Click a point to select its creation week.</p></div><div class="card-body"><div class="chart-wrap"><canvas id="trend-chart"></canvas></div></div></article></div>
     </section>
 
     <section class="card app-card mb-4">
-      <div class="card-header bg-white border-0 pt-3 px-4"><h2 class="section-title mb-1">Site attention</h2><p class="section-subtitle">Open backlog scored by critical severity and age.</p></div>
+      <div class="card-header bg-white border-0 pt-3 px-4"><h2 class="section-title mb-1">Site attention</h2><p class="section-subtitle">Filtered open backlog scored by critical severity and age.</p></div>
       <div class="card-body px-4 pt-2"><div id="site-health" class="row row-cols-1 row-cols-sm-2 row-cols-xl-4 g-3"></div></div>
     </section>
 
     <section class="card app-card table-card">
       <div class="card-header bg-white border-0 p-3 px-lg-4 d-flex align-items-center justify-content-between gap-3">
-        <div><h2 class="section-title mb-1">ADO decision queue</h2><p class="section-subtitle">Synthetic issues prioritized by operational attention.</p></div>
-        <span class="demo-badge">Read only</span>
+        <div><h2 class="section-title mb-1">ADO decision queue</h2><p id="queue-summary" class="section-subtitle">Prioritized by operational attention.</p></div>
+        <label class="page-size d-flex align-items-center gap-2">Rows
+          <select id="page-size" class="form-select form-select-sm"><option>10</option><option selected>25</option><option>50</option></select>
+        </label>
       </div>
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
-          <thead><tr><th>ADO</th><th>Site</th><th>Building block</th><th>Classification</th><th>Quantity affected</th><th>Repairs</th><th>AI review</th><th>State</th><th>Severity</th><th>Age / Resolution time</th></tr></thead>
+          <thead><tr><th><button class="sort-link" data-sort="ado_id">ADO</button></th><th><button class="sort-link" data-sort="site">Site</button></th><th><button class="sort-link" data-sort="building_block">Building block</button></th><th><button class="sort-link" data-sort="failure_error">Failed task / error</button></th><th><button class="sort-link" data-sort="failure_codes">Failed code</button></th><th><button class="sort-link" data-sort="classification">Classification</button></th><th><button class="sort-link" data-sort="units_impacted">Quantity affected</button></th><th><button class="sort-link" data-sort="repair_count">Repairs</button></th><th><button class="sort-link" data-sort="owner">Owner</button></th><th><button class="sort-link" data-sort="state">State</button></th><th><button class="sort-link" data-sort="severity">Severity</button></th><th><button class="sort-link" data-sort="lifecycle_days">Age / Resolution time</button></th></tr></thead>
           <tbody id="items"></tbody>
         </table>
       </div>
       <p id="empty" class="text-center text-muted py-5 mb-0" hidden><i class="bi bi-search d-block fs-3 mb-2"></i>No items match the selected filters.</p>
+      <div id="pagination" class="card-footer bg-white border-0 p-3 px-lg-4" hidden>
+        <nav aria-label="ADO detail pages"><ul class="pagination pagination-sm justify-content-end mb-0">
+          <li id="previous-page" class="page-item"><button class="page-link" type="button">Previous</button></li>
+          <li class="page-item disabled"><span id="page-label" class="page-link">Page 1 of 1</span></li>
+          <li id="next-page" class="page-item"><button class="page-link" type="button">Next</button></li>
+        </ul></nav>
+      </div>
     </section>
   </main>
 
-  <footer class="border-top bg-white"><div class="container-fluid px-4 py-3 d-flex flex-wrap justify-content-between gap-2"><span>BSL Azure DevOps quality monitoring · synthetic demonstration</span><span class="text-muted">Published from a local outbound-only snapshot</span></div></footer>
+  <footer class="border-top bg-white"><div class="container-fluid px-4 py-3 d-flex flex-wrap justify-content-between gap-2"><span>BSL Azure DevOps quality monitoring · encrypted read-only replica</span><span class="text-muted">Published from a local outbound-only snapshot</span></div></footer>
   </div>
   <script src="assets/app.js"></script>
 </body>
