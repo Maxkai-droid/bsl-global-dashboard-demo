@@ -323,6 +323,220 @@ function renderCards(items) {
   setText("top-block", block ? block[0] : "Not identified");
 }
 
+function createElement(tag, className, value) {
+  const element = document.createElement(tag);
+  if (className) element.className = className;
+  if (value !== undefined && value !== null) element.append(text(value));
+  return element;
+}
+
+function validatedAdoUrl(item) {
+  const value = String(item.detail?.ado_url || "");
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    const host = url.hostname.toLowerCase();
+    const allowedHost = host === "dev.azure.com" || host.endsWith(".visualstudio.com");
+    const allowedPath = new RegExp(`/_workitems/edit/${item.ado_id}/?$`, "i").test(url.pathname);
+    return url.protocol === "https:" && allowedHost && allowedPath ? url.href : "";
+  } catch (_error) {
+    return "";
+  }
+}
+
+function addDetailCard(grid, label, value, className = "") {
+  const card = createElement("div", `detail-readonly-card ${className}`.trim());
+  card.append(createElement("small", "", label));
+  const content = createElement("p", "", value || "Not identified");
+  card.append(content);
+  grid.append(card);
+  return card;
+}
+
+function addMetaBadge(container, value) {
+  if (value === "" || value === null || value === undefined) return;
+  container.append(createElement("span", "detail-meta-badge", value));
+}
+
+function renderAdoDetail(item) {
+  const detail = item.detail || {};
+  const container = document.getElementById("ado-detail-content");
+  container.replaceChildren();
+
+  const hero = createElement("header", "detail-hero app-card mb-4");
+  const heroMain = createElement("div", "detail-hero-main");
+  const badges = createElement("div", "d-flex flex-wrap align-items-center gap-2 mb-2");
+  badges.append(createElement("span", "eyebrow mb-0", `ADO ${item.ado_id}`));
+  badges.append(createElement("span", "state", item.state));
+  badges.append(createElement("span", `severity ${severityClass(item.severity)}`, item.severity));
+  heroMain.append(badges);
+  const title = createElement("h1", "detail-title", detail.title || `ADO ${item.ado_id}`);
+  title.id = "ado-detail-title";
+  heroMain.append(title);
+  const metadata = createElement("div", "detail-meta");
+  [
+    item.site,
+    `${item.building_block || "Building block not specified"}${item.building_block_ai_verified ? " · AI verified" : ""}`,
+    item.owner || "Unassigned",
+    isOpen(item) ? `${item.age_days} days old` : `Resolved in ${item.resolution_days ?? "unknown"} days`,
+  ].forEach((value) => metadata.append(createElement("span", "", value)));
+  heroMain.append(metadata);
+  hero.append(heroMain);
+  const actions = createElement("div", "detail-hero-actions");
+  const adoUrl = validatedAdoUrl(item);
+  if (adoUrl) {
+    const link = createElement("a", "btn btn-primary", "Open in Azure DevOps");
+    link.href = adoUrl;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    actions.append(link);
+  }
+  hero.append(actions);
+  container.append(hero);
+
+  const summarySection = createElement("section", "card app-card operational-summary mb-4");
+  const summaryHeader = createElement("div", "card-header bg-white border-0 p-4 pb-2");
+  summaryHeader.append(createElement("p", "eyebrow", "OPERATIONAL SUMMARY"));
+  summaryHeader.append(createElement("h2", "h4 fw-bold mb-1", "What happened and how production was affected"));
+  summarySection.append(summaryHeader);
+  const summaryBody = createElement("div", "card-body p-4 pt-2");
+  const grid = createElement("div", "detail-readonly-grid");
+  addDetailCard(grid, "Issue", detail.ai_summary || detail.summary, "wide");
+  addDetailCard(grid, "Delay exposure", detail.delay_display || "No delay data");
+  addDetailCard(grid, "Quantity affected", `${item.units_impacted || 0} unit(s)`);
+  addDetailCard(grid, "Quantity evidence", detail.quantity_evidence);
+  addDetailCard(grid, "Production stage", detail.production_stage);
+  addDetailCard(grid, "Failure classification", item.classification);
+  addDetailCard(grid, "BSL attribution", detail.bsl_attribution);
+  addDetailCard(grid, "Validation", item.validation_status);
+  addDetailCard(grid, "Assessment confidence", detail.confidence);
+  addDetailCard(grid, "Failed task / error", item.failure_error, "wide");
+  addDetailCard(grid, "Failure codes", (item.failure_codes || []).join(", ") || "Not identified");
+  addDetailCard(grid, "Failure evidence", detail.failure_evidence, "full");
+  addDetailCard(grid, "Root cause", detail.root_cause || "Root cause has not been confirmed.", "full");
+  addDetailCard(grid, "Building Block evidence", detail.building_block_evidence, "full");
+  addDetailCard(grid, "Product manufacturer", detail.product_manufacturer);
+  addDetailCard(grid, "Product name", detail.product_name);
+  addDetailCard(grid, "Product serial number", detail.product_serial_number);
+  addDetailCard(grid, "Affected servers", detail.affected_servers);
+  addDetailCard(grid, "Supplier", detail.supplier);
+  addDetailCard(grid, "Category", detail.category);
+  summaryBody.append(grid);
+  summarySection.append(summaryBody);
+  container.append(summarySection);
+
+  const repairSection = createElement("section", "card app-card repair-panel mb-4");
+  const repairHeader = createElement("div", "card-header bg-white border-0 p-4");
+  repairHeader.append(createElement("p", "eyebrow", "REPAIR PROGRESSION"));
+  repairHeader.append(createElement(
+    "h2",
+    "h4 fw-bold mb-1",
+    `${(detail.repairs || []).length} recorded action${(detail.repairs || []).length === 1 ? "" : "s"}`,
+  ));
+  repairSection.append(repairHeader);
+  const repairBody = createElement("div", "card-body p-4 pt-0");
+  const repairList = createElement("div", "detail-repair-list");
+  if (!(detail.repairs || []).length) {
+    repairList.append(createElement("p", "detail-empty", "No repair action has been recorded."));
+  }
+  (detail.repairs || []).forEach((repair) => {
+    const article = createElement("article", `detail-repair${repair.is_final ? " final" : ""}`);
+    article.append(createElement("h3", "repair-action-title", repair.action_type || "Unnamed action"));
+    const meta = createElement("div", "detail-repair-meta");
+    [
+      repair.action_status,
+      repair.is_final ? "Final action" : "",
+      repair.source,
+      repair.confidence ? `${repair.confidence} confidence` : "",
+      repair.performed_at,
+      repair.performed_by,
+      repair.supplier,
+    ].forEach((value) => addMetaBadge(meta, value));
+    article.append(meta);
+    if (repair.outcome) {
+      article.append(createElement("strong", "", "Outcome"));
+      article.append(createElement("p", "", repair.outcome));
+    }
+    if (repair.notes) {
+      article.append(createElement("strong", "d-block mt-2", "Evidence / notes"));
+      article.append(createElement("p", "", repair.notes));
+    }
+    if (repair.source_comment_ids?.length || repair.evidence_images?.length) {
+      const evidenceMeta = createElement("div", "detail-evidence-meta");
+      addMetaBadge(
+        evidenceMeta,
+        repair.source_comment_ids?.length
+          ? `Comment IDs: ${repair.source_comment_ids.join(", ")}`
+          : "",
+      );
+      addMetaBadge(
+        evidenceMeta,
+        repair.evidence_images?.length
+          ? `Evidence files: ${repair.evidence_images.join(", ")}`
+          : "",
+      );
+      article.append(evidenceMeta);
+    }
+    if (repair.evidence_url) {
+      const evidenceUrl = createElement("a", "btn btn-sm btn-outline-primary mt-2", "Open evidence link");
+      evidenceUrl.href = repair.evidence_url;
+      evidenceUrl.target = "_blank";
+      evidenceUrl.rel = "noopener noreferrer";
+      article.append(evidenceUrl);
+    }
+    repairList.append(article);
+  });
+  repairBody.append(repairList);
+  repairSection.append(repairBody);
+  container.append(repairSection);
+
+  const analysis = detail.comment_analysis || {};
+  const evidenceSection = createElement("section", "card app-card evidence-panel mb-4");
+  const evidenceBody = createElement("div", "card-body p-4");
+  evidenceBody.append(createElement("p", "eyebrow", "AI EVIDENCE AND COMMENT REVIEW"));
+  evidenceBody.append(createElement("h2", "h4 fw-bold mb-3", "Comment and evidence metadata"));
+  const evidenceMeta = createElement("div", "detail-evidence-meta");
+  [
+    `${analysis.comment_count || 0} comments reviewed`,
+    analysis.status || "No review status",
+    analysis.confidence ? `${analysis.confidence} confidence` : "",
+    analysis.analyzed_at,
+  ].forEach((value) => addMetaBadge(evidenceMeta, value));
+  evidenceBody.append(evidenceMeta);
+  if (analysis.injection_detected) {
+    evidenceBody.append(createElement(
+      "p",
+      "detail-evidence-warning",
+      "Prompt Guard detected instruction-like content in the ADO evidence. It was treated as untrusted data.",
+    ));
+  }
+  if (analysis.error_message) addDetailCard(evidenceBody, "Review error", analysis.error_message);
+  if (analysis.summary) addDetailCard(evidenceBody, "Comment review summary", analysis.summary);
+  if (analysis.evidence_summary) addDetailCard(evidenceBody, "Evidence summary", analysis.evidence_summary);
+  const metadataGrid = createElement("div", "detail-readonly-grid mt-3");
+  addDetailCard(
+    metadataGrid,
+    "Cited comment IDs",
+    analysis.source_comment_ids?.join(", ") || "None recorded",
+  );
+  addDetailCard(
+    metadataGrid,
+    "Evidence filenames",
+    analysis.evidence_images?.join(", ") || "None recorded",
+    "wide",
+  );
+  evidenceBody.append(metadataGrid);
+  evidenceBody.append(createElement(
+    "p",
+    "detail-evidence-warning mt-3 mb-0",
+    "Evidence image binaries remain on the local BSL runtime and are not copied into public Git history.",
+  ));
+  evidenceSection.append(evidenceBody);
+  container.append(evidenceSection);
+
+  document.getElementById("ado-detail-dialog").showModal();
+}
+
 function sortValue(item, key) {
   if (key === "attention_score") return attentionScore(item);
   if (key === "lifecycle_days") {
@@ -363,7 +577,19 @@ function renderTable(items) {
     const ado = document.createElement("td");
     const marker = document.createElement("span");
     marker.className = `attention-marker ${attention(item)}`;
-    ado.append(marker, text(item.ado_id));
+    const detailButton = createElement("button", "ado-detail-trigger", item.ado_id);
+    detailButton.type = "button";
+    detailButton.addEventListener("click", () => renderAdoDetail(item));
+    ado.append(marker, detailButton);
+    const adoUrl = validatedAdoUrl(item);
+    if (adoUrl) {
+      const directLink = createElement("a", "ado-direct-link", "↗");
+      directLink.href = adoUrl;
+      directLink.target = "_blank";
+      directLink.rel = "noopener noreferrer";
+      directLink.title = "Open in Azure DevOps";
+      ado.append(directLink);
+    }
     row.append(ado);
 
     const site = document.createElement("td");
@@ -707,6 +933,12 @@ document.getElementById("dashboard-filters").addEventListener("submit", (event) 
     page = 1;
     render();
   });
+});
+document.getElementById("close-ado-detail").addEventListener("click", () => {
+  document.getElementById("ado-detail-dialog").close();
+});
+document.getElementById("ado-detail-dialog").addEventListener("click", (event) => {
+  if (event.target === event.currentTarget) event.currentTarget.close();
 });
 document.querySelectorAll("[data-focus]").forEach((button) => {
   button.addEventListener("click", () => {
