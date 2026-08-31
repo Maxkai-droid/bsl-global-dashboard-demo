@@ -15,7 +15,13 @@
       "state": "Active",
       "severity": "1 - Critical",
       "classification": "True failure",
-      "age_days": 12
+      "age_days": 12,
+      "ai_review": false,
+      "units_impacted": 8,
+      "repair_count": 2,
+      "created_this_week": true,
+      "closed_this_week": false,
+      "week_index": 5
     },
     {
       "ado_id": "DEMO-002",
@@ -24,7 +30,13 @@
       "state": "Resolved",
       "severity": "2 - High",
       "classification": "False failure",
-      "age_days": 8
+      "age_days": 8,
+      "ai_review": false,
+      "units_impacted": 3,
+      "repair_count": 1,
+      "created_this_week": false,
+      "closed_this_week": true,
+      "week_index": 4
     },
     {
       "ado_id": "DEMO-003",
@@ -33,7 +45,13 @@
       "state": "Active",
       "severity": "2 - High",
       "classification": "Supplier/process-induced failure",
-      "age_days": 19
+      "age_days": 19,
+      "ai_review": false,
+      "units_impacted": 12,
+      "repair_count": 3,
+      "created_this_week": false,
+      "closed_this_week": false,
+      "week_index": 3
     },
     {
       "ado_id": "DEMO-004",
@@ -42,7 +60,13 @@
       "state": "New",
       "severity": "3 - Medium",
       "classification": "Unclassified",
-      "age_days": 3
+      "age_days": 3,
+      "ai_review": true,
+      "units_impacted": 0,
+      "repair_count": 0,
+      "created_this_week": true,
+      "closed_this_week": false,
+      "week_index": 5
     },
     {
       "ado_id": "DEMO-005",
@@ -51,7 +75,13 @@
       "state": "Closed",
       "severity": "3 - Medium",
       "classification": "BSL-induced failure",
-      "age_days": 25
+      "age_days": 25,
+      "ai_review": false,
+      "units_impacted": 5,
+      "repair_count": 2,
+      "created_this_week": false,
+      "closed_this_week": false,
+      "week_index": 1
     },
     {
       "ado_id": "DEMO-006",
@@ -60,9 +90,15 @@
       "state": "Committed",
       "severity": "4 - Low",
       "classification": "Undetermined",
-      "age_days": 6
+      "age_days": 6,
+      "ai_review": false,
+      "units_impacted": 1,
+      "repair_count": 1,
+      "created_this_week": false,
+      "closed_this_week": false,
+      "week_index": 2
     }
   ],
-  "generated_at": "2026-08-31T20:14:55Z",
-  "content_hash": "synthetic-demo-v1"
+  "generated_at": "2026-08-31T20:26:55Z",
+  "content_hash": "synthetic-dashboard-demo-v2"
 }

@@ -2,52 +2,147 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
-  <title>Project BSL Health - Synthetic Demo</title>
+  <title>BSL Failure Health Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link rel="stylesheet" href="assets/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
 <body>
-  <main>
-    <header>
-      <p class="eyebrow">PUBLIC SYNTHETIC DEMO</p>
-      <h1>Project BSL Health</h1>
-      <p><strong>Demonstration only.</strong> All records and metrics on this site are fictional.</p>
-      <p id="freshness">Loading sanitized dashboard data...</p>
-    </header>
-    <section class="metrics" aria-label="Summary metrics">
-      <article><span>Total</span><strong id="metric-total">--</strong></article>
-      <article><span>Open</span><strong id="metric-open">--</strong></article>
-      <article><span>Critical</span><strong id="metric-critical">--</strong></article>
-      <article><span>AI review</span><strong id="metric-ai-review">--</strong></article>
-    </section>
-    <section class="panel">
-      <div class="panel-heading">
-        <div>
-          <p class="eyebrow">SANITIZED ITEMS</p>
-          <h2>Current scope</h2>
-        </div>
-        <input id="filter" type="search" placeholder="Filter ID, site, block, state..." aria-label="Filter work items">
+  <nav class="navbar navbar-dark app-navbar sticky-top">
+    <div class="container-fluid px-lg-4">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+        <span class="brand-mark"><i class="bi bi-heart-pulse-fill"></i></span>
+        <span><strong>BSL Health</strong><small>Manufacturing quality</small></span>
+      </a>
+      <div class="d-flex align-items-center gap-2">
+        <span class="demo-badge">Synthetic demo</span>
+        <a class="nav-link active px-2" href="#dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>ADO</th>
-              <th>Site</th>
-              <th>Building Block</th>
-              <th>State</th>
-              <th>Severity</th>
-              <th>Classification</th>
-              <th class="number">Age</th>
-            </tr>
-          </thead>
+    </div>
+  </nav>
+
+  <main id="dashboard" class="container-fluid app-container px-3 px-lg-4 py-4">
+    <section class="dashboard-hero rounded-4 shadow-sm p-4 p-lg-5 mb-4">
+      <div class="row align-items-end position-relative">
+        <div class="col-lg-8">
+          <p class="eyebrow">MANUFACTURING QUALITY · PUBLIC SYNTHETIC DEMO</p>
+          <h1 class="display-6 fw-bold mb-2">BSL Failure Health Dashboard</h1>
+          <p class="mb-0">Read-only GitHub Pages replica of the local operational dashboard. Every record is fictional.</p>
+        </div>
+        <div class="col-lg-4 d-flex justify-content-lg-end">
+          <div class="health-legend"><span class="dot green"></span>Healthy <span class="dot yellow"></span>Watch <span class="dot red"></span>Risk</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="publisher-strip" class="card app-card sync-strip success mb-4">
+      <div class="card-body py-3">
+        <div class="row align-items-center g-3">
+          <div class="col-xl-3 d-flex align-items-center gap-2">
+            <span class="sync-badge success">Published</span>
+            <strong>Local snapshot publisher</strong>
+            <span class="live-connection connected"><i></i><span>GitHub Pages</span></span>
+          </div>
+          <div class="col-6 col-xl-2 sync-meta"><small>Generated</small><b id="generated-at">Loading</b></div>
+          <div class="col-6 col-xl-2 sync-meta"><small>Source revision</small><b id="source-revision">--</b></div>
+          <div class="col-6 col-xl-2 sync-meta"><small>Published items</small><b id="published-count">--</b></div>
+          <div class="col-xl-3 sync-meta"><small>Security boundary</small><b>Synthetic data only · read-only site</b></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card app-card filter-card dashboard-controls mb-4">
+      <div class="card-header bg-white border-0 pt-3 px-3 px-lg-4">
+        <div class="d-flex flex-wrap align-items-start justify-content-between gap-2">
+          <div><h2 class="section-title mb-1">Analysis scope</h2><p class="section-subtitle">All metrics and charts below follow these local browser filters.</p></div>
+          <div class="scope-count"><strong id="scope-count">0</strong> matching <span>of <span id="total-count">0</span> total</span></div>
+        </div>
+      </div>
+      <div class="card-body px-3 px-lg-4 pt-2">
+        <form id="dashboard-filters" class="row g-3 align-items-end">
+          <div class="col-12 col-lg-4">
+            <label class="form-label" for="search">Search ADO, site, block, state, or classification</label>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+              <input id="search" class="form-control" placeholder="Example: DEMO-003, GB200">
+            </div>
+          </div>
+          <div class="col-6 col-md-4 col-lg-2"><label class="form-label" for="site-filter">Site</label><select id="site-filter" class="form-select form-select-sm"><option value="">All</option></select></div>
+          <div class="col-6 col-md-4 col-lg-2"><label class="form-label" for="block-filter">Building Block</label><select id="block-filter" class="form-select form-select-sm"><option value="">All</option></select></div>
+          <div class="col-6 col-md-4 col-lg-2"><label class="form-label" for="state-filter">State</label><select id="state-filter" class="form-select form-select-sm"><option value="">All</option></select></div>
+          <div class="col-6 col-md-4 col-lg-2"><label class="form-label" for="class-filter">Failure class</label><select id="class-filter" class="form-select form-select-sm"><option value="">All</option></select></div>
+        </form>
+        <div class="quick-filter-row border-top mt-3 pt-3">
+          <span class="quick-filter-label">Focus</span>
+          <button type="button" class="quick-filter" data-focus="critical"><i class="bi bi-exclamation-diamond"></i> Critical open</button>
+          <button type="button" class="quick-filter" data-focus="ai"><i class="bi bi-stars"></i> AI review</button>
+          <button type="button" class="quick-filter" data-focus="aged"><i class="bi bi-clock-history"></i> Over 14 days</button>
+          <button id="reset-filters" type="button" class="btn btn-sm btn-link ms-auto text-decoration-none"><i class="bi bi-arrow-counterclockwise"></i> Reset all</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="dashboard-section-heading">
+      <div><p class="eyebrow">FILTERED SNAPSHOT</p><h2>Operational performance</h2></div>
+      <span><span id="scope-label">0</span> issues in scope</span>
+    </div>
+
+    <section class="row row-cols-2 row-cols-xl-4 g-3 mb-4">
+      <div class="col"><article class="card app-card kpi-card"><div class="card-body p-3"><div class="d-flex justify-content-between"><p class="kpi-label mb-0">Open BSL ADOs</p><span class="kpi-icon"><i class="bi bi-inbox"></i></span></div><strong id="kpi-open" class="kpi-value d-block mt-2">0</strong><small class="kpi-subtitle">Current backlog</small></div></article></div>
+      <div class="col"><article class="card app-card kpi-card"><div class="card-body p-3"><div class="d-flex justify-content-between"><p class="kpi-label mb-0">New This Week</p><span class="kpi-icon"><i class="bi bi-plus-circle"></i></span></div><strong id="kpi-new" class="kpi-value d-block mt-2">0</strong><small class="kpi-subtitle">Created in 7 days</small></div></article></div>
+      <div class="col"><article class="card app-card kpi-card"><div class="card-body p-3"><div class="d-flex justify-content-between"><p class="kpi-label mb-0">Closed This Week</p><span class="kpi-icon"><i class="bi bi-check-circle"></i></span></div><strong id="kpi-closed" class="kpi-value d-block mt-2">0</strong><small class="kpi-subtitle">Completed in 7 days</small></div></article></div>
+      <div class="col"><article class="card app-card kpi-card"><div class="card-body p-3"><div class="d-flex justify-content-between"><p class="kpi-label mb-0">Critical Open</p><span class="kpi-icon"><i class="bi bi-exclamation-triangle"></i></span></div><strong id="kpi-critical" class="kpi-value d-block mt-2">0</strong><small class="kpi-subtitle">Severity 1</small></div></article></div>
+    </section>
+
+    <section class="card app-card impact-card mb-4">
+      <div class="card-header bg-white border-0 pt-3 px-4"><h2 class="section-title mb-1"><i class="bi bi-activity text-danger me-1"></i> BSL operational impact</h2><p class="section-subtitle">Classification, affected quantity, and AI-completeness indicators.</p></div>
+      <div class="card-body px-4 pt-2"><div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-3" id="impact-grid"></div></div>
+    </section>
+
+    <section class="card app-card decision-panel mb-4">
+      <div class="card-header bg-white border-0 pt-3 px-4 d-flex flex-wrap justify-content-between align-items-start gap-2">
+        <div><h2 class="section-title mb-1"><i class="bi bi-compass text-primary me-1"></i> Decision signals</h2><p class="section-subtitle">Priority and evidence quality for the current analysis scope.</p></div>
+        <span class="analysis-scope-badge"><span id="assessed-count">0</span> assessed</span>
+      </div>
+      <div class="card-body px-4 pt-2">
+        <div class="row row-cols-2 row-cols-lg-5 g-3" id="decision-grid"></div>
+        <div class="pattern-strip mt-3">
+          <div><span>Most common failure</span><strong id="top-failure">Not identified</strong></div>
+          <div><span>Most affected building block</span><strong id="top-block">Not identified</strong></div>
+          <p><i class="bi bi-lightbulb"></i> Use these patterns to prioritize containment, test coverage, and corrective action.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="row g-4 mb-4">
+      <div class="col-lg-6"><article class="card app-card chart-panel h-100"><div class="card-header bg-white border-0 pt-3 px-4"><h2 class="section-title mb-1">Site impact</h2><p class="section-subtitle">Issue volume by manufacturing site.</p></div><div class="card-body"><div class="chart-wrap"><canvas id="site-chart"></canvas></div></div></article></div>
+      <div class="col-lg-6"><article class="card app-card chart-panel h-100"><div class="card-header bg-white border-0 pt-3 px-4"><h2 class="section-title mb-1">Created by week</h2><p class="section-subtitle">Synthetic six-week trend.</p></div><div class="card-body"><div class="chart-wrap"><canvas id="trend-chart"></canvas></div></div></article></div>
+    </section>
+
+    <section class="card app-card mb-4">
+      <div class="card-header bg-white border-0 pt-3 px-4"><h2 class="section-title mb-1">Site attention</h2><p class="section-subtitle">Open backlog scored by critical severity and age.</p></div>
+      <div class="card-body px-4 pt-2"><div id="site-health" class="row row-cols-1 row-cols-sm-2 row-cols-xl-4 g-3"></div></div>
+    </section>
+
+    <section class="card app-card table-card">
+      <div class="card-header bg-white border-0 p-3 px-lg-4 d-flex align-items-center justify-content-between gap-3">
+        <div><h2 class="section-title mb-1">ADO decision queue</h2><p class="section-subtitle">Synthetic issues prioritized by operational attention.</p></div>
+        <span class="demo-badge">Read only</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead><tr><th>ADO</th><th>Site</th><th>Building block</th><th>Classification</th><th>AI review</th><th>State</th><th>Severity</th><th>Age / Resolution time</th></tr></thead>
           <tbody id="items"></tbody>
         </table>
       </div>
-      <p id="empty" hidden>No items match the current filter.</p>
+      <p id="empty" class="text-center text-muted py-5 mb-0" hidden><i class="bi bi-search d-block fs-3 mb-2"></i>No items match the selected filters.</p>
     </section>
   </main>
+
+  <footer class="border-top bg-white"><div class="container-fluid px-4 py-3 d-flex flex-wrap justify-content-between gap-2"><span>BSL Azure DevOps quality monitoring · synthetic demonstration</span><span class="text-muted">Published from a local outbound-only snapshot</span></div></footer>
   <script src="assets/app.js"></script>
 </body>
 </html>
