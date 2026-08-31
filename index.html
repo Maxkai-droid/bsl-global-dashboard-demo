@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Project BSL Health - Synthetic Demo</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">PUBLIC SYNTHETIC DEMO</p>
+      <h1>Project BSL Health</h1>
+      <p><strong>Demonstration only.</strong> All records and metrics on this site are fictional.</p>
+      <p id="freshness">Loading sanitized dashboard data...</p>
+    </header>
+    <section class="metrics" aria-label="Summary metrics">
+      <article><span>Total</span><strong id="metric-total">--</strong></article>
+      <article><span>Open</span><strong id="metric-open">--</strong></article>
+      <article><span>Critical</span><strong id="metric-critical">--</strong></article>
+      <article><span>AI review</span><strong id="metric-ai-review">--</strong></article>
+    </section>
+    <section class="panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">SANITIZED ITEMS</p>
+          <h2>Current scope</h2>
+        </div>
+        <input id="filter" type="search" placeholder="Filter ID, site, block, state..." aria-label="Filter work items">
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ADO</th>
+              <th>Site</th>
+              <th>Building Block</th>
+              <th>State</th>
+              <th>Severity</th>
+              <th>Classification</th>
+              <th class="number">Age</th>
+            </tr>
+          </thead>
+          <tbody id="items"></tbody>
+        </table>
+      </div>
+      <p id="empty" hidden>No items match the current filter.</p>
+    </section>
+  </main>
+  <script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "source_revision": 0,
+  "metrics": {
+    "total": 6,
+    "open": 4,
+    "critical": 1,
+    "ai_review": 1
+  },
+  "items": [
+    {
+      "ado_id": "DEMO-001",
+      "site": "QMF",
+      "building_block": "C2195",
+      "state": "Active",
+      "severity": "1 - Critical",
+      "classification": "True failure",
+      "age_days": 12
+    },
+    {
+      "ado_id": "DEMO-002",
+      "site": "WW",
+      "building_block": "S2295",
+      "state": "Resolved",
+      "severity": "2 - High",
+      "classification": "False failure",
+      "age_days": 8
+    },
+    {
+      "ado_id": "DEMO-003",
+      "site": "Foxconn",
+      "building_block": "GB200",
+      "state": "Active",
+      "severity": "2 - High",
+      "classification": "Supplier/process-induced failure",
+      "age_days": 19
+    },
+    {
+      "ado_id": "DEMO-004",
+      "site": "LNV",
+      "building_block": "C229D",
+      "state": "New",
+      "severity": "3 - Medium",
+      "classification": "Unclassified",
+      "age_days": 3
+    },
+    {
+      "ado_id": "DEMO-005",
+      "site": "ZT",
+      "building_block": "S2185",
+      "state": "Closed",
+      "severity": "3 - Medium",
+      "classification": "BSL-induced failure",
+      "age_days": 25
+    },
+    {
+      "ado_id": "DEMO-006",
+      "site": "Ingrasys/FHU",
+      "building_block": "C1000",
+      "state": "Committed",
+      "severity": "4 - Low",
+      "classification": "Undetermined",
+      "age_days": 6
+    }
+  ],
+  "generated_at": "2026-08-31T20:14:55Z",
+  "content_hash": "synthetic-demo-v1"
+}
