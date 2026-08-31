@@ -5,6 +5,7 @@ const filters = { query: "", site: "", block: "", state: "", classification: "",
 let allItems = [];
 let siteChart;
 let trendChart;
+let siteChartMode = "issues";
 
 const text = (value) => document.createTextNode(String(value ?? ""));
 const setText = (id, value) => { document.getElementById(id).textContent = value; };
@@ -145,6 +146,11 @@ function renderTable(items) {
     classificationBadge.append(text(item.classification));
     classification.append(classificationBadge);
     row.append(classification);
+    [item.units_impacted || 0, item.repair_count || 0].forEach((value) => {
+      const cell = document.createElement("td");
+      cell.append(text(value));
+      row.append(cell);
+    });
     const ai = document.createElement("td");
     ai.append(text(item.ai_review ? "Needs review" : "Verified"));
     row.append(ai);
@@ -209,9 +215,20 @@ function renderCharts(items) {
   if (trendChart) trendChart.destroy();
   Chart.defaults.font.family = '"Segoe UI",system-ui,sans-serif';
   Chart.defaults.color = "#667085";
+  const siteValues = labels.map((label) => items
+    .filter((item) => item.site === label)
+    .reduce((sum, item) => sum + Number(item.units_impacted || 0), 0));
   siteChart = new Chart(document.getElementById("site-chart"), {
     type: "bar",
-    data: { labels, datasets: [{ data: labels.map((label) => siteCounts[label]), backgroundColor: "#0b5ed7", borderRadius: 7, maxBarThickness: 48 }] },
+    data: {
+      labels,
+      datasets: [{
+        data: siteChartMode === "issues" ? labels.map((label) => siteCounts[label]) : siteValues,
+        backgroundColor: siteChartMode === "issues" ? "#0b5ed7" : "#d97706",
+        borderRadius: 7,
+        maxBarThickness: 48,
+      }],
+    },
     options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { precision: 0 } } } },
   });
   trendChart = new Chart(document.getElementById("trend-chart"), {
@@ -325,4 +342,20 @@ document.getElementById("reset-filters").addEventListener("click", () => {
   Object.keys(filters).forEach((key) => { filters[key] = ""; });
   document.getElementById("dashboard-filters").reset();
   render();
+});
+document.getElementById("issues-created-tab").addEventListener("click", () => {
+  siteChartMode = "issues";
+  document.getElementById("issues-created-tab").classList.add("active");
+  document.getElementById("issues-created-tab").setAttribute("aria-selected", "true");
+  document.getElementById("units-affected-tab").classList.remove("active");
+  document.getElementById("units-affected-tab").setAttribute("aria-selected", "false");
+  renderCharts(filteredItems());
+});
+document.getElementById("units-affected-tab").addEventListener("click", () => {
+  siteChartMode = "units";
+  document.getElementById("units-affected-tab").classList.add("active");
+  document.getElementById("units-affected-tab").setAttribute("aria-selected", "true");
+  document.getElementById("issues-created-tab").classList.remove("active");
+  document.getElementById("issues-created-tab").setAttribute("aria-selected", "false");
+  renderCharts(filteredItems());
 });

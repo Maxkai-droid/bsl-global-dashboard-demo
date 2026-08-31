@@ -135,7 +135,18 @@
     </section>
 
     <section class="row g-4 mb-4">
-      <div class="col-lg-6"><article class="card app-card chart-panel h-100"><div class="card-header bg-white border-0 pt-3 px-4"><h2 class="section-title mb-1">Site impact</h2><p class="section-subtitle">Issue volume by manufacturing site.</p></div><div class="card-body"><div class="chart-wrap"><canvas id="site-chart"></canvas></div></div></article></div>
+      <div class="col-lg-6">
+        <article class="card app-card chart-panel h-100">
+          <div class="card-header bg-white border-0 pt-3 px-4"><h2 class="section-title mb-1">Site impact</h2><p class="section-subtitle">Compare issue volume and explicitly reported affected units.</p></div>
+          <div class="card-body pt-1">
+            <div class="encrypted-chart-tabs" role="tablist">
+              <button id="issues-created-tab" class="active" type="button" role="tab" aria-selected="true">Issues Created</button>
+              <button id="units-affected-tab" type="button" role="tab" aria-selected="false">Units Affected</button>
+            </div>
+            <div class="chart-wrap mt-3"><canvas id="site-chart"></canvas></div>
+          </div>
+        </article>
+      </div>
       <div class="col-lg-6"><article class="card app-card chart-panel h-100"><div class="card-header bg-white border-0 pt-3 px-4"><h2 class="section-title mb-1">Created by week</h2><p class="section-subtitle">Synthetic six-week trend.</p></div><div class="card-body"><div class="chart-wrap"><canvas id="trend-chart"></canvas></div></div></article></div>
     </section>
 
@@ -151,7 +162,7 @@
       </div>
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
-          <thead><tr><th>ADO</th><th>Site</th><th>Building block</th><th>Classification</th><th>AI review</th><th>State</th><th>Severity</th><th>Age / Resolution time</th></tr></thead>
+          <thead><tr><th>ADO</th><th>Site</th><th>Building block</th><th>Classification</th><th>Quantity affected</th><th>Repairs</th><th>AI review</th><th>State</th><th>Severity</th><th>Age / Resolution time</th></tr></thead>
           <tbody id="items"></tbody>
         </table>
       </div>
