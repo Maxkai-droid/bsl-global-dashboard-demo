@@ -1,6 +1,9 @@
 :root{--app-bg:#f4f7fb;--app-ink:#172033;--app-muted:#667085;--app-border:#e2e8f0;--app-primary:#0b5ed7}
 *{box-sizing:border-box}
 body{min-height:100vh;background:var(--app-bg);color:var(--app-ink);font-family:"Segoe UI",system-ui,-apple-system,sans-serif}
+.login-shell{min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(135deg,#0e172a,#174a72)}
+.login-card{width:min(430px,100%);padding:2rem;border:1px solid rgba(255,255,255,.2);border-radius:1.5rem;background:#fff;box-shadow:0 26px 70px rgba(2,6,23,.32)}
+.login-card h1{margin:.3rem 0 .75rem;font-size:2rem;font-weight:800}.login-card>p:not(.eyebrow){color:#667085}.login-mark{margin-bottom:1.25rem;background:#eaf2ff;color:#0b5ed7}.login-card form{display:grid;gap:.55rem;margin:1.35rem 0}.login-card label{color:#475467;font-size:.78rem;font-weight:750}.login-card input{width:100%;padding:.75rem .85rem;border:1px solid #cbd5e1;border-radius:.7rem}.login-card button{position:relative;overflow:hidden;margin-top:.55rem;padding:.78rem;border:0;border-radius:.7rem;background:#0b5ed7;color:#fff;font-weight:800;transition:transform .18s ease}.login-card button:hover{transform:scale(1.02)}.login-card small{color:#667085}.login-error{margin:.35rem 0 0;color:#b91c1c!important;font-size:.78rem;font-weight:700}
 .app-navbar{background:linear-gradient(100deg,#0e172a,#172c4d);box-shadow:0 3px 16px rgba(15,23,42,.2)}
 .navbar-brand small{display:block;color:#aebbd0;font-size:.68rem;font-weight:500;letter-spacing:.04em}
 .brand-mark{display:grid;place-items:center;width:2.25rem;height:2.25rem;border-radius:.7rem;background:rgba(255,255,255,.13);color:#7dd3fc}

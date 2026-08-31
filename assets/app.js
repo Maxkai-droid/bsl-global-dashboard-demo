@@ -223,27 +223,87 @@ function render() {
   renderCharts(items);
 }
 
-fetch("data/dashboard.json", { cache: "no-store" })
-  .then((response) => {
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.json();
-  })
-  .then((snapshot) => {
-    allItems = Array.isArray(snapshot.items) ? snapshot.items : [];
-    setText("generated-at", new Date(snapshot.generated_at).toLocaleString());
-    setText("source-revision", snapshot.source_revision);
-    setText("published-count", allItems.length);
-    setText("total-count", allItems.length);
-    populateSelect("site-filter", "site");
-    populateSelect("block-filter", "building_block");
-    populateSelect("state-filter", "state");
-    populateSelect("class-filter", "classification");
-    render();
-  })
-  .catch((error) => {
-    document.getElementById("publisher-strip").classList.remove("success");
-    setText("generated-at", `Snapshot unavailable: ${error.message}`);
-  });
+const fromBase64 = (value) => Uint8Array.from(atob(value), (character) => character.charCodeAt(0));
+
+async function decryptSnapshot(password) {
+  const response = await fetch("data/dashboard.enc.json", { cache: "no-store" });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const envelope = await response.json();
+  if (
+    envelope.algorithm !== "AES-256-GCM"
+    || envelope.kdf !== "PBKDF2-SHA256"
+    || Number(envelope.iterations) < 210000
+  ) {
+    throw new Error("Unsupported encrypted snapshot");
+  }
+
+  const passwordKey = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(password),
+    "PBKDF2",
+    false,
+    ["deriveKey"],
+  );
+  const key = await crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      hash: "SHA-256",
+      salt: fromBase64(envelope.salt),
+      iterations: Number(envelope.iterations),
+    },
+    passwordKey,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["decrypt"],
+  );
+  const ciphertext = fromBase64(envelope.ciphertext);
+  const tag = fromBase64(envelope.tag);
+  const encrypted = new Uint8Array(ciphertext.length + tag.length);
+  encrypted.set(ciphertext);
+  encrypted.set(tag, ciphertext.length);
+  const plaintext = await crypto.subtle.decrypt(
+    {
+      name: "AES-GCM",
+      iv: fromBase64(envelope.nonce),
+      additionalData: new TextEncoder().encode(envelope.additional_data),
+      tagLength: 128,
+    },
+    key,
+    encrypted,
+  );
+  return JSON.parse(new TextDecoder().decode(plaintext));
+}
+
+function startDashboard(snapshot) {
+  allItems = Array.isArray(snapshot.items) ? snapshot.items : [];
+  setText("generated-at", new Date(snapshot.generated_at).toLocaleString());
+  setText("source-revision", snapshot.source_revision);
+  setText("published-count", allItems.length);
+  setText("total-count", allItems.length);
+  populateSelect("site-filter", "site");
+  populateSelect("block-filter", "building_block");
+  populateSelect("state-filter", "state");
+  populateSelect("class-filter", "classification");
+  document.getElementById("login-screen").hidden = true;
+  document.getElementById("dashboard-shell").hidden = false;
+  render();
+}
+
+document.getElementById("login-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const error = document.getElementById("login-error");
+  error.hidden = true;
+  const password = form.elements.password.value;
+  try {
+    startDashboard(await decryptSnapshot(password));
+    form.reset();
+  } catch (_error) {
+    error.hidden = false;
+    form.elements.password.value = "";
+    form.elements.password.focus();
+  }
+});
 
 document.getElementById("search").addEventListener("input", (event) => { filters.query = event.target.value.trim(); render(); });
 document.getElementById("site-filter").addEventListener("change", (event) => { filters.site = event.target.value; render(); });
