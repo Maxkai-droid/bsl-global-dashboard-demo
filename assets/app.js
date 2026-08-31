@@ -196,7 +196,14 @@ function renderCharts(items) {
   if (!window.Chart) return;
   const siteCounts = countBy(items, "site");
   const labels = Object.keys(siteCounts).sort();
-  const weeks = ["Jul 27", "Aug 03", "Aug 10", "Aug 17", "Aug 24", "Aug 31"];
+  const current = new Date();
+  current.setHours(0, 0, 0, 0);
+  current.setDate(current.getDate() - ((current.getDay() + 6) % 7) - 35);
+  const weeks = Array.from({ length: 6 }, (_, index) => {
+    const start = new Date(current);
+    start.setDate(start.getDate() + index * 7);
+    return start.toLocaleDateString(undefined, { month: "short", day: "2-digit" });
+  });
   const weekly = weeks.map((_, index) => items.filter((item) => Number(item.week_index) === index).length);
   if (siteChart) siteChart.destroy();
   if (trendChart) trendChart.destroy();
