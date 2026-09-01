@@ -67,6 +67,11 @@ function applyPeriod(scope) {
   document.getElementById("through-date").value = filters.createdTo;
 }
 
+function applyDefaultPeriod() {
+  applyPeriod("month");
+  if (allItems.length && filteredItems().length === 0) applyPeriod("all");
+}
+
 function isOpen(item) {
   return !closedStates.has(String(item.state || "").toLowerCase());
 }
@@ -888,7 +893,7 @@ function startDashboard(snapshot) {
   populateSelect("state-filter", "state");
   populateSelect("class-filter", "classification");
   populateSelect("validation-filter", "validation_status");
-  applyPeriod("month");
+  applyDefaultPeriod();
   document.getElementById("login-screen").hidden = true;
   document.getElementById("dashboard-shell").hidden = false;
   window.scrollTo(0, 0);
@@ -957,7 +962,7 @@ document.querySelectorAll("[data-period]").forEach((button) => {
 document.getElementById("reset-filters").addEventListener("click", () => {
   Object.keys(filters).forEach((key) => { filters[key] = ""; });
   document.getElementById("dashboard-filters").reset();
-  applyPeriod("month");
+  applyDefaultPeriod();
   sortKey = "attention_score";
   sortDirection = "desc";
   page = 1;
