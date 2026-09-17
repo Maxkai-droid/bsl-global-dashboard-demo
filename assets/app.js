@@ -283,10 +283,13 @@ function renderCards(items) {
   impactGrid.replaceChildren(...impact.map(([label, value, detail, style]) => {
     const column = document.createElement("div");
     column.className = "col";
-    column.innerHTML = `<div class="impact-metric ${style}"><small></small><strong></strong><span></span></div>`;
-    column.querySelector("small").append(text(label));
-    column.querySelector("strong").append(text(value));
-    column.querySelector("span").append(text(detail));
+    const metric = createElement("div", `impact-metric ${style}`);
+    metric.append(
+      createElement("small", "", label),
+      createElement("strong", "", value),
+      createElement("span", "", detail),
+    );
+    column.append(metric);
     return column;
   }));
 
@@ -301,10 +304,14 @@ function renderCards(items) {
   decisionGrid.replaceChildren(...signals.map(([label, value, detail, style]) => {
     const column = document.createElement("div");
     column.className = "col";
-    column.innerHTML = `<button type="button" class="decision-signal signal-${style}"><span></span><strong></strong><small></small></button>`;
-    column.querySelector("span").append(text(label));
-    column.querySelector("strong").append(text(value));
-    column.querySelector("small").append(text(detail));
+    const button = createElement("button", `decision-signal signal-${style}`);
+    button.type = "button";
+    button.append(
+      createElement("span", "", label),
+      createElement("strong", "", value),
+      createElement("small", "", detail),
+    );
+    column.append(button);
     const focus = {
       "High attention": "attention",
       "Diagnostic coverage": "diagnostic",
@@ -313,7 +320,7 @@ function renderCards(items) {
       "AI review queue": "ai",
     }[label];
     if (focus) {
-      column.querySelector("button").addEventListener("click", () => {
+      button.addEventListener("click", () => {
         filters.focus = focus;
         page = 1;
         render();
@@ -586,6 +593,16 @@ function renderTable(items) {
     detailButton.type = "button";
     detailButton.addEventListener("click", () => renderAdoDetail(item));
     ado.append(marker, detailButton);
+    const reasons = Array.isArray(item.attention_reasons)
+      ? item.attention_reasons.slice(0, 2)
+      : [];
+    if (reasons.length) {
+      const reasonList = createElement("span", "attention-reasons");
+      reasons.forEach((reason) => {
+        reasonList.append(createElement("span", "", reason.label));
+      });
+      ado.append(reasonList);
+    }
     const adoUrl = validatedAdoUrl(item);
     if (adoUrl) {
       const directLink = createElement("a", "ado-direct-link", "↗");
@@ -704,20 +721,39 @@ function renderHealth(items) {
     const common = mostCommonFailure(rows);
     const column = document.createElement("div");
     column.className = "col";
-    column.innerHTML = `<button type="button" class="health-card w-100 text-start"><div><b></b><span class="pill ${status[1]}"></span></div><strong></strong><small></small><span class="site-failure-pattern"><b>Most common failure</b><span></span></span></button>`;
-    column.querySelector("b").append(text(site));
-    column.querySelector(".pill").append(text(status[0]));
-    column.querySelector("strong").append(text(score));
-    column.querySelector("small").append(text(`${open.length} open · ${critical} critical · ${old} over 30d`));
-    column.querySelector(".site-failure-pattern span").append(
-      text(common.count ? `${common.label} · ${common.count} issue(s)` : common.label),
+    const button = createElement("button", "health-card w-100 text-start");
+    button.type = "button";
+    const heading = document.createElement("div");
+    heading.append(
+      createElement("b", "", site),
+      createElement("span", `pill ${status[1]}`, status[0]),
     );
-    column.querySelector("button").addEventListener("click", () => {
+    const pattern = createElement("span", "site-failure-pattern");
+    pattern.append(
+      createElement("b", "", "Most common failure"),
+      createElement(
+        "span",
+        "",
+        common.count ? `${common.label} · ${common.count} issue(s)` : common.label,
+      ),
+    );
+    button.append(
+      heading,
+      createElement("strong", "", score),
+      createElement(
+        "small",
+        "",
+        `${open.length} open · ${critical} critical · ${old} over 30d`,
+      ),
+      pattern,
+    );
+    button.addEventListener("click", () => {
       filters.site = site;
       document.getElementById("site-filter").value = site;
       page = 1;
       render();
     });
+    column.append(button);
     return column;
   }));
 }
