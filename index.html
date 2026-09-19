@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; manifest-src 'none'; media-src 'none'; worker-src 'none'">
   <title>BSL Failure Health Dashboard</title>
   <link href="assets/vendor/bootstrap.min.css" rel="stylesheet">
   <link href="assets/vendor/bootstrap-icons.min.css" rel="stylesheet">
@@ -22,7 +22,7 @@
         <label for="login-password">Access key</label>
         <input id="login-password" name="password" type="password" autocomplete="current-password" required>
         <button type="submit"><span>Unlock dashboard</span></button>
-        <p id="login-error" class="login-error" role="alert" hidden>The access key is incorrect.</p>
+        <p id="login-error" class="login-error" role="alert" aria-live="assertive" tabindex="-1" hidden>The encrypted dashboard could not be opened.</p>
       </form>
       <small>The password is never sent to GitHub or stored by this page.</small>
     </div>
@@ -155,11 +155,15 @@
               <button id="issues-created-tab" class="active" type="button" role="tab" aria-selected="true">Issues Created</button>
               <button id="units-affected-tab" type="button" role="tab" aria-selected="false">Units Affected</button>
             </div>
-            <div class="chart-wrap mt-3"><canvas id="site-chart"></canvas></div>
+            <div class="chart-wrap mt-3"><canvas id="site-chart" role="img" aria-label="Issues or explicitly reported affected units by site. Use the data controls below for keyboard filtering."></canvas></div>
+            <details class="chart-data mt-2">
+              <summary>View site chart data and keyboard filters</summary>
+              <div id="site-chart-data" class="chart-data-list"></div>
+            </details>
           </div>
         </article>
       </div>
-      <div class="col-lg-6"><article class="card app-card chart-panel h-100"><div class="card-header bg-white border-0 pt-3 px-4"><h2 class="section-title mb-1">Created by week</h2><p class="section-subtitle">Filtered six-week trend. Click a point to select its creation week.</p></div><div class="card-body"><div class="chart-wrap"><canvas id="trend-chart"></canvas></div></div></article></div>
+      <div class="col-lg-6"><article class="card app-card chart-panel h-100"><div class="card-header bg-white border-0 pt-3 px-4"><h2 class="section-title mb-1">Created by week</h2><p class="section-subtitle">Filtered six-week trend. Click a point to select its creation week.</p></div><div class="card-body"><div class="chart-wrap"><canvas id="trend-chart" role="img" aria-label="Created BSL issues by week. Use the data controls below for keyboard filtering."></canvas></div><details class="chart-data mt-2"><summary>View weekly trend data and keyboard filters</summary><div id="trend-chart-data" class="chart-data-list"></div></details></div></article></div>
     </section>
 
     <section class="card app-card mb-4">

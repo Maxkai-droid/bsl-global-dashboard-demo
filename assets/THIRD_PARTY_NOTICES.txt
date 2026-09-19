@@ -1,0 +1,2 @@
+Bootstrap 5.3.3, Bootstrap Icons 1.11.3, and Chart.js 4.4.7 are distributed under the MIT License.
+Full versions, SHA-256 hashes, sources, and notices are tracked in the source repository THIRD_PARTY_NOTICES.md and config/frontend-assets.json.

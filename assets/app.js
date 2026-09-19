@@ -1,5 +1,295 @@
 "use strict";
 
+const payloadFailureReasons = new Set([
+  "image_evidence_review_required",
+  "prompt_guard_blocked",
+  "analysis_failed",
+]);
+const payloadProhibitedKeys = new Set([
+  "agent_output",
+  "error_message",
+  "injection_detected",
+  "evidence_images",
+]);
+const payloadFailureClasses = new Set([
+  "Unclassified",
+  "True failure",
+  "False failure",
+  "BSL-induced failure",
+  "Supplier/process-induced failure",
+  "Undetermined",
+]);
+const payloadValidationStatuses = new Set([
+  "Pending",
+  "Under review",
+  "Confirmed",
+  "Closed",
+]);
+
+function payloadError(path, message) {
+  throw new Error(`${path}: ${message}`);
+}
+
+function exactObject(value, path, allowed, required = allowed) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    payloadError(path, "must be an object");
+  }
+  Object.keys(value).forEach((key) => {
+    if (!allowed.has(key)) payloadError(`${path}.${key}`, "is not allowlisted");
+  });
+  required.forEach((key) => {
+    if (!Object.prototype.hasOwnProperty.call(value, key)) {
+      payloadError(path, `missing ${key}`);
+    }
+  });
+}
+
+function boundedString(value, path, maximum, pattern = null) {
+  if (typeof value !== "string" || value.length > maximum || /[\u0000-\u001f\u007f]/.test(value)) {
+    payloadError(path, "must be bounded printable text");
+  }
+  if (pattern && !pattern.test(value)) payloadError(path, "has invalid format");
+}
+
+function boundedInteger(value, path, minimum = 0, maximum = 2147483647) {
+  if (!Number.isInteger(value) || typeof value === "boolean" || value < minimum || value > maximum) {
+    payloadError(path, "must be a bounded integer");
+  }
+}
+
+function boundedNumber(value, path, minimum = 0, maximum = 1e9) {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < minimum || value > maximum) {
+    payloadError(path, "must be a bounded finite number");
+  }
+}
+
+function utcTimestamp(value, path, allowEmpty = false) {
+  boundedString(value, path, 40);
+  if (allowEmpty && !value) return;
+  if (!(value.endsWith("Z") || value.endsWith("+00:00")) || Number.isNaN(Date.parse(value))) {
+    payloadError(path, "must be a UTC timestamp");
+  }
+}
+
+function canonicalAdoUrl(value, path, adoId, evidence = false) {
+  boundedString(value, path, 2048);
+  let url;
+  try {
+    url = new URL(value);
+  } catch (_error) {
+    payloadError(path, "must be a URL");
+  }
+  const host = url.hostname.toLowerCase();
+  const allowedHost = host === "dev.azure.com" || host.endsWith(".visualstudio.com");
+  const allowedPath = evidence
+    ? /\/_apis\/wit\/attachments\/[0-9a-f]{8}-[0-9a-f-]{27}\/?$/i.test(url.pathname)
+    : new RegExp(`/_workitems/edit/${adoId}/?$`, "i").test(url.pathname);
+  if (
+    url.protocol !== "https:"
+    || !allowedHost
+    || !allowedPath
+    || url.username
+    || url.password
+    || (url.port && url.port !== "443")
+    || url.search
+    || url.hash
+  ) {
+    payloadError(path, "is not an approved canonical ADO URL");
+  }
+}
+
+function rejectProhibited(value, path = "$") {
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => rejectProhibited(item, `${path}[${index}]`));
+  } else if (value && typeof value === "object") {
+    Object.entries(value).forEach(([key, item]) => {
+      if (payloadProhibitedKeys.has(key)) payloadError(`${path}.${key}`, "is quarantined");
+      rejectProhibited(item, `${path}.${key}`);
+    });
+  } else if (typeof value === "number" && !Number.isFinite(value)) {
+    payloadError(path, "must be finite");
+  }
+}
+
+function validateCommentAnalysis(value, path) {
+  const keys = new Set([
+    "comment_count", "status", "confidence", "summary", "source_comment_ids",
+    "analyzed_at", "failure_reason_code", "failure_correlation_id",
+  ]);
+  exactObject(value, path, keys);
+  boundedInteger(value.comment_count, `${path}.comment_count`, 0, 100000);
+  ["status", "confidence", "summary"].forEach((key) => boundedString(
+    value[key], `${path}.${key}`, key === "summary" ? 4000 : 50,
+  ));
+  if (!Array.isArray(value.source_comment_ids) || value.source_comment_ids.length > 100) {
+    payloadError(`${path}.source_comment_ids`, "must be a bounded array");
+  }
+  value.source_comment_ids.forEach((item, index) => boundedInteger(
+    item, `${path}.source_comment_ids[${index}]`, 1,
+  ));
+  utcTimestamp(value.analyzed_at, `${path}.analyzed_at`, true);
+  if (value.failure_reason_code) {
+    boundedString(value.failure_reason_code, `${path}.failure_reason_code`, 64);
+    if (!payloadFailureReasons.has(value.failure_reason_code)) {
+      payloadError(`${path}.failure_reason_code`, "has invalid value");
+    }
+  }
+  if (value.failure_correlation_id) {
+    boundedString(
+      value.failure_correlation_id,
+      `${path}.failure_correlation_id`,
+      64,
+      /^[A-Za-z0-9_-]{16,64}$/,
+    );
+  }
+}
+
+function validateRepair(value, path) {
+  const required = new Set([
+    "action_type", "performed_at", "performed_by", "supplier", "outcome", "notes",
+    "source", "source_comment_ids", "confidence", "action_status", "is_final",
+  ]);
+  const allowed = new Set([...required, "evidence_url", "evidence_reference"]);
+  exactObject(value, path, allowed, required);
+  [
+    ["action_type", 500], ["performed_at", 100], ["performed_by", 200],
+    ["supplier", 200], ["outcome", 4000], ["notes", 4000], ["source", 100],
+    ["confidence", 50], ["action_status", 50],
+  ].forEach(([key, maximum]) => boundedString(value[key], `${path}.${key}`, maximum));
+  if (value.evidence_url) canonicalAdoUrl(value.evidence_url, `${path}.evidence_url`, "", true);
+  if (value.evidence_reference !== undefined) {
+    if (value.evidence_reference !== "Microsoft 365 evidence retained locally") {
+      payloadError(`${path}.evidence_reference`, "has invalid value");
+    }
+  }
+  if (!Array.isArray(value.source_comment_ids) || value.source_comment_ids.length > 100) {
+    payloadError(`${path}.source_comment_ids`, "must be a bounded array");
+  }
+  value.source_comment_ids.forEach((item, index) => boundedInteger(
+    item, `${path}.source_comment_ids[${index}]`, 1,
+  ));
+  if (typeof value.is_final !== "boolean") payloadError(`${path}.is_final`, "must be boolean");
+}
+
+function validateDetail(value, path, adoId) {
+  const keys = new Set([
+    "ado_url", "title", "summary", "category", "bsl_attribution", "confidence",
+    "root_cause", "supplier", "delay_start", "delay_end", "delay_hours",
+    "delay_source", "effective_delay_hours", "delay_display", "production_stage",
+    "ai_summary", "quantity_evidence", "building_block_evidence", "failure_evidence",
+    "product_manufacturer", "product_name", "product_serial_number",
+    "affected_servers", "repairs", "comment_analysis",
+  ]);
+  exactObject(value, path, keys);
+  if (value.ado_url) canonicalAdoUrl(value.ado_url, `${path}.ado_url`, adoId);
+  [
+    ["ado_url", 2048], ["title", 500], ["summary", 4000], ["category", 200],
+    ["bsl_attribution", 100], ["confidence", 50], ["root_cause", 5000],
+    ["supplier", 200], ["delay_start", 100], ["delay_end", 100],
+    ["delay_source", 20], ["delay_display", 100], ["production_stage", 200],
+    ["ai_summary", 4000], ["quantity_evidence", 2000],
+    ["building_block_evidence", 2000], ["failure_evidence", 4000],
+    ["product_manufacturer", 200], ["product_name", 500],
+    ["product_serial_number", 500], ["affected_servers", 1000],
+  ].forEach(([key, maximum]) => boundedString(value[key], `${path}.${key}`, maximum));
+  boundedNumber(value.delay_hours, `${path}.delay_hours`);
+  boundedNumber(value.effective_delay_hours, `${path}.effective_delay_hours`);
+  if (!Array.isArray(value.repairs) || value.repairs.length > 100) {
+    payloadError(`${path}.repairs`, "must be a bounded array");
+  }
+  value.repairs.forEach((repair, index) => validateRepair(repair, `${path}.repairs[${index}]`));
+  validateCommentAnalysis(value.comment_analysis, `${path}.comment_analysis`);
+}
+
+function validateItem(value, path) {
+  const required = new Set([
+    "ado_id", "site", "building_block", "state", "severity", "classification", "age_days",
+  ]);
+  const allowed = new Set([
+    ...required, "ai_review", "units_impacted", "repair_count", "created_this_week",
+    "closed_this_week", "week_index", "created_date", "closed_date", "resolution_days",
+    "validation_status", "building_block_ai_verified", "failure_error", "failure_codes",
+    "owner", "delay_recorded", "attention_reasons", "detail",
+  ]);
+  exactObject(value, path, allowed, required);
+  boundedString(value.ado_id, `${path}.ado_id`, 12, /^\d{1,12}$/);
+  [
+    ["site", 100], ["building_block", 100], ["state", 50],
+    ["severity", 50], ["classification", 100],
+  ].forEach(([key, maximum]) => boundedString(value[key], `${path}.${key}`, maximum));
+  if (!payloadFailureClasses.has(value.classification)) {
+    payloadError(`${path}.classification`, "has invalid value");
+  }
+  boundedInteger(value.age_days, `${path}.age_days`, 0, 100000);
+  if (Object.prototype.hasOwnProperty.call(value, "ai_review")) {
+    ["ai_review", "created_this_week", "closed_this_week"].forEach((key) => {
+      if (typeof value[key] !== "boolean") payloadError(`${path}.${key}`, "must be boolean");
+    });
+    boundedInteger(value.units_impacted, `${path}.units_impacted`);
+    boundedInteger(value.repair_count, `${path}.repair_count`);
+    boundedInteger(value.week_index, `${path}.week_index`, -1, 5);
+  }
+  if (Object.prototype.hasOwnProperty.call(value, "created_date")) {
+    boundedString(value.created_date, `${path}.created_date`, 10, /^\d{4}-\d{2}-\d{2}$/);
+    if (value.closed_date !== null) boundedString(
+      value.closed_date, `${path}.closed_date`, 10, /^\d{4}-\d{2}-\d{2}$/,
+    );
+    if (value.resolution_days !== null) boundedInteger(
+      value.resolution_days, `${path}.resolution_days`,
+    );
+    if (!payloadValidationStatuses.has(value.validation_status)) {
+      payloadError(`${path}.validation_status`, "has invalid value");
+    }
+    if (typeof value.building_block_ai_verified !== "boolean") {
+      payloadError(`${path}.building_block_ai_verified`, "must be boolean");
+    }
+    boundedString(value.failure_error, `${path}.failure_error`, 500);
+    if (!Array.isArray(value.failure_codes) || value.failure_codes.length > 10) {
+      payloadError(`${path}.failure_codes`, "must be a bounded array");
+    }
+    value.failure_codes.forEach((code, index) => boundedString(
+      code, `${path}.failure_codes[${index}]`, 64,
+    ));
+    boundedString(value.owner, `${path}.owner`, 200);
+    if (typeof value.delay_recorded !== "boolean") {
+      payloadError(`${path}.delay_recorded`, "must be boolean");
+    }
+    if (!Array.isArray(value.attention_reasons) || value.attention_reasons.length > 8) {
+      payloadError(`${path}.attention_reasons`, "must be a bounded array");
+    }
+    value.attention_reasons.forEach((reason, index) => {
+      exactObject(reason, `${path}.attention_reasons[${index}]`, new Set(["code", "label"]));
+      boundedString(reason.code, `${path}.attention_reasons[${index}].code`, 64);
+      boundedString(reason.label, `${path}.attention_reasons[${index}].label`, 100);
+    });
+  }
+  if (value.detail) validateDetail(value.detail, `${path}.detail`, value.ado_id);
+}
+
+function validateSnapshot(snapshot) {
+  rejectProhibited(snapshot);
+  const keys = new Set([
+    "schema_version", "source_revision", "metrics", "items", "generated_at", "content_hash",
+  ]);
+  exactObject(snapshot, "$", keys);
+  boundedInteger(snapshot.schema_version, "$.schema_version", 2, 2);
+  boundedInteger(snapshot.source_revision, "$.source_revision");
+  exactObject(snapshot.metrics, "$.metrics", new Set(["total", "open", "critical", "ai_review"]));
+  Object.entries(snapshot.metrics).forEach(([key, value]) => boundedInteger(
+    value, `$.metrics.${key}`, 0, 10000,
+  ));
+  if (!Array.isArray(snapshot.items) || snapshot.items.length > 10000) {
+    payloadError("$.items", "must be a bounded array");
+  }
+  snapshot.items.forEach((item, index) => validateItem(item, `$.items[${index}]`));
+  if (snapshot.metrics.total !== snapshot.items.length) {
+    payloadError("$.metrics.total", "does not match item count");
+  }
+  utcTimestamp(snapshot.generated_at, "$.generated_at");
+  boundedString(snapshot.content_hash, "$.content_hash", 64, /^[0-9a-f]{64}$/);
+  return snapshot;
+}
+
 const closedStates = new Set(["closed", "resolved", "done", "completed"]);
 const numericSorts = new Set([
   "ado_id",
@@ -388,7 +678,7 @@ function renderAdoDetail(item) {
   const metadata = createElement("div", "detail-meta");
   [
     item.site,
-    `${item.building_block || "Building block not specified"}${item.building_block_ai_verified ? " · AI verified" : ""}`,
+    `${item.building_block || "Building block not specified"}${item.building_block_ai_verified ? " · AI extracted" : ""}`,
     item.owner || "Unassigned",
     isOpen(item) ? `${item.age_days} days old` : `Resolved in ${item.resolution_days ?? "unknown"} days`,
   ].forEach((value) => metadata.append(createElement("span", "", value)));
@@ -415,7 +705,13 @@ function renderAdoDetail(item) {
   const grid = createElement("div", "detail-readonly-grid");
   addDetailCard(grid, "Issue", detail.ai_summary || detail.summary, "wide");
   addDetailCard(grid, "Delay exposure", detail.delay_display || "No delay data");
-  addDetailCard(grid, "Quantity affected", `${item.units_impacted || 0} unit(s)`);
+  addDetailCard(
+    grid,
+    "Quantity affected",
+    item.units_impacted || detail.quantity_evidence
+      ? `${item.units_impacted || 0} unit(s)`
+      : "Not documented",
+  );
   addDetailCard(grid, "Quantity evidence", detail.quantity_evidence);
   addDetailCard(grid, "Production stage", detail.production_stage);
   addDetailCard(grid, "Failure classification", item.classification);
@@ -522,9 +818,34 @@ function renderAdoDetail(item) {
       "Prompt Guard detected instruction-like content in the ADO evidence. It was treated as untrusted data.",
     ));
   }
-  if (analysis.error_message) addDetailCard(evidenceBody, "Review error", analysis.error_message);
+  if (analysis.failure_reason_code) {
+    const failureStatus = {
+      image_evidence_review_required: [
+        "Image evidence requires human review",
+        "Automated assessment and repair extraction were not updated.",
+      ],
+      prompt_guard_blocked: [
+        "Automated review blocked",
+        "Instruction-like evidence was treated as untrusted data.",
+      ],
+      analysis_failed: [
+        "Automated review unavailable",
+        "Protected local logs contain diagnostic details.",
+      ],
+    }[analysis.failure_reason_code];
+    addDetailCard(
+      evidenceBody,
+      "Automated review status",
+      `${failureStatus[0]}. ${failureStatus[1]}`,
+      "wide",
+    );
+    addDetailCard(
+      evidenceBody,
+      "Correlation reference",
+      analysis.failure_correlation_id || "Unavailable",
+    );
+  }
   if (analysis.summary) addDetailCard(evidenceBody, "Comment review summary", analysis.summary);
-  if (analysis.evidence_summary) addDetailCard(evidenceBody, "Evidence summary", analysis.evidence_summary);
   const metadataGrid = createElement("div", "detail-readonly-grid mt-3");
   addDetailCard(
     metadataGrid,
@@ -533,8 +854,8 @@ function renderAdoDetail(item) {
   );
   addDetailCard(
     metadataGrid,
-    "Evidence filenames",
-    analysis.evidence_images?.join(", ") || "None recorded",
+    "Evidence handling",
+    "Image evidence and filenames remain quarantined on the local BSL runtime.",
     "wide",
   );
   evidenceBody.append(metadataGrid);
@@ -623,7 +944,7 @@ function renderTable(items) {
     if (item.building_block_ai_verified) {
       const verified = document.createElement("small");
       verified.className = "d-block text-muted";
-      verified.append(text("AI verified"));
+      verified.append(text("AI extracted"));
       block.append(verified);
     }
     row.append(block);
@@ -788,6 +1109,41 @@ function renderCharts(items) {
     .filter((item) => item.site === label)
     .reduce((sum, item) => sum + Number(item.units_impacted || 0), 0));
   const weeks = weeklyData(items);
+  const siteData = document.getElementById("site-chart-data");
+  siteData.replaceChildren(...labels.map((label, index) => {
+    const button = createElement(
+      "button",
+      "chart-data-control",
+      `${label}: ${siteChartMode === "issues" ? siteCounts[label] : siteValues[index]} ${siteChartMode === "issues" ? "issue(s)" : "explicitly reported unit(s)"}`,
+    );
+    button.type = "button";
+    button.addEventListener("click", () => {
+      filters.site = label;
+      document.getElementById("site-filter").value = label;
+      page = 1;
+      render();
+    });
+    return button;
+  }));
+  const trendData = document.getElementById("trend-chart-data");
+  trendData.replaceChildren(...weeks.map((week) => {
+    const button = createElement(
+      "button",
+      "chart-data-control",
+      `${week.label}: ${week.count} issue(s)`,
+    );
+    button.type = "button";
+    button.addEventListener("click", () => {
+      filters.createdFrom = week.start;
+      filters.createdTo = week.end;
+      periodScope = "";
+      document.getElementById("from-date").value = week.start;
+      document.getElementById("through-date").value = week.end;
+      page = 1;
+      render();
+    });
+    return button;
+  }));
   if (siteChart) siteChart.destroy();
   if (trendChart) trendChart.destroy();
   Chart.defaults.font.family = '"Segoe UI",system-ui,sans-serif';
@@ -872,14 +1228,19 @@ const fromBase64 = (value) => Uint8Array.from(
 
 async function decryptSnapshot(password) {
   const response = await fetch("data/dashboard.enc.json", { cache: "no-store" });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  const envelope = await response.json();
+  if (!response.ok) throw new Error("snapshot-unavailable");
+  let envelope;
+  try {
+    envelope = await response.json();
+  } catch (_error) {
+    throw new Error("snapshot-format");
+  }
   if (
     envelope.algorithm !== "AES-256-GCM"
     || envelope.kdf !== "PBKDF2-SHA256"
     || Number(envelope.iterations) < 210000
   ) {
-    throw new Error("Unsupported encrypted snapshot");
+    throw new Error("snapshot-format");
   }
   const passwordKey = await crypto.subtle.importKey(
     "raw",
@@ -915,10 +1276,11 @@ async function decryptSnapshot(password) {
     key,
     encrypted,
   );
-  return JSON.parse(new TextDecoder().decode(plaintext));
+  return validateSnapshot(JSON.parse(new TextDecoder().decode(plaintext)));
 }
 
 function startDashboard(snapshot) {
+  validateSnapshot(snapshot);
   allItems = Array.isArray(snapshot.items) ? snapshot.items : [];
   setText("generated-at", new Date(snapshot.generated_at).toLocaleString());
   setText("source-revision", snapshot.source_revision);
@@ -945,8 +1307,17 @@ document.getElementById("login-form").addEventListener("submit", async (event) =
   try {
     startDashboard(await decryptSnapshot(password));
     form.reset();
-  } catch (_error) {
+  } catch (failure) {
+    const safeMessage = {
+      "snapshot-unavailable": "The encrypted dashboard file is unavailable. Try again later or ask the publisher to republish it.",
+      "snapshot-format": "The protected dashboard format was rejected. Ask the publisher to republish a valid snapshot.",
+    }[failure.message]
+      || (failure instanceof DOMException && failure.name === "OperationError"
+        ? "The access key was not accepted, or the encrypted dashboard file is damaged."
+        : "The protected dashboard data was rejected. Ask the publisher to republish a valid snapshot.");
+    error.textContent = safeMessage;
     error.hidden = false;
+    error.focus();
     form.elements.password.value = "";
     form.elements.password.focus();
   }
