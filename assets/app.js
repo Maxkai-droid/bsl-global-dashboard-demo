@@ -974,6 +974,13 @@ function renderTable(items) {
     }
     row.append(ado);
 
+    const created = document.createElement("td");
+    const createdTime = document.createElement("time");
+    createdTime.dateTime = item.created_date;
+    createdTime.append(text(item.created_date));
+    created.append(createdTime);
+    row.append(created);
+
     const site = document.createElement("td");
     site.append(text(item.site));
     row.append(site);
