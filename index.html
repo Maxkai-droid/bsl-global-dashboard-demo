@@ -96,6 +96,7 @@
           <div class="col-6 col-md-4 col-lg-2"><label class="form-label" for="state-filter">State</label><select id="state-filter" class="form-select form-select-sm"><option value="">All</option></select></div>
           <div class="col-6 col-md-4 col-lg-2"><label class="form-label" for="class-filter">Failure class</label><select id="class-filter" class="form-select form-select-sm"><option value="">All</option></select></div>
           <div class="col-6 col-md-4 col-lg-2"><label class="form-label" for="validation-filter">Validation</label><select id="validation-filter" class="form-select form-select-sm"><option value="">All</option></select></div>
+          <div class="col-6 col-md-4 col-lg-2"><label class="form-label" for="failure-code-filter">Failure code</label><select id="failure-code-filter" class="form-select form-select-sm"><option value="">All</option></select></div>
           <div class="col-6 col-md-4 col-lg-2"><label class="form-label" for="age-filter">Age</label><select id="age-filter" class="form-select form-select-sm"><option value="">All</option><option>0-7</option><option>8-14</option><option>15-30</option><option>&gt;30</option></select></div>
         </form>
         <div class="quick-filter-row border-top mt-3 pt-3">
@@ -140,6 +141,7 @@
         <div class="row row-cols-2 row-cols-lg-5 g-3" id="decision-grid"></div>
         <div class="pattern-strip mt-3">
           <div><span>Most common failure</span><strong id="top-failure">Not identified</strong></div>
+          <div><span>Top exact failure code</span><strong><button id="top-failure-code" class="pattern-filter" type="button" disabled>Not identified</button></strong></div>
           <div><span>Most affected building block</span><strong id="top-block">Not identified</strong></div>
           <p><i class="bi bi-lightbulb"></i> Use these patterns to prioritize containment, test coverage, and corrective action.</p>
         </div>

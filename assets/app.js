@@ -307,6 +307,7 @@ const filters = {
   state: "",
   classification: "",
   validation: "",
+  failureCode: "",
   age: "",
   focus: "",
 };
@@ -446,6 +447,10 @@ function filteredItems() {
     if (filters.state && item.state !== filters.state) return false;
     if (filters.classification && item.classification !== filters.classification) return false;
     if (filters.validation && item.validation_status !== filters.validation) return false;
+    if (
+      filters.failureCode
+      && !(item.failure_codes || []).includes(filters.failureCode)
+    ) return false;
     if (filters.age && ageBand(item.age_days) !== filters.age) return false;
     if (filters.focus === "attention" && attention(item) !== "high") return false;
     if (filters.focus === "diagnostic" && hasDiagnostic(item)) return false;
@@ -480,6 +485,18 @@ function populateSelect(id, key) {
     });
 }
 
+function populateFailureCodeSelect() {
+  const select = document.getElementById("failure-code-filter");
+  [...new Set(allItems.flatMap((item) => item.failure_codes || []).filter(Boolean))]
+    .sort((left, right) => left.localeCompare(right))
+    .forEach((value) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.append(text(value));
+      select.append(option);
+    });
+}
+
 function renderActiveFilters() {
   const labels = {
     createdFrom: "Created from",
@@ -489,6 +506,7 @@ function renderActiveFilters() {
     state: "State",
     classification: "Failure class",
     validation: "Validation",
+    failureCode: "Failure code",
     age: "Age",
     query: "Search",
     focus: "Focus",
@@ -529,6 +547,7 @@ function renderActiveFilters() {
           state: "state-filter",
           classification: "class-filter",
           validation: "validation-filter",
+          failureCode: "failure-code-filter",
           age: "age-filter",
         }[key]);
         if (input) input.value = "";
@@ -552,6 +571,13 @@ function renderCards(items) {
   const delayReported = items.filter((item) => item.delay_recorded).length;
   const diagnosticCount = items.filter(hasDiagnostic).length;
   const repairCount = items.filter((item) => Number(item.repair_count || 0) > 0).length;
+  const failureCodeCounts = new Map();
+  items.forEach((item) => (item.failure_codes || []).forEach((code) => {
+    failureCodeCounts.set(code, (failureCodeCounts.get(code) || 0) + 1);
+  }));
+  const topFailureCode = [...failureCodeCounts.entries()].sort(
+    (left, right) => right[1] - left[1] || left[0].localeCompare(right[0]),
+  )[0];
 
   setText("scope-count", items.length);
   setText("scope-label", items.length);
@@ -622,6 +648,19 @@ function renderCards(items) {
   const failure = mostCommonFailure(items);
   const block = topEntry(countBy(items.filter((item) => item.building_block), "building_block"));
   setText("top-failure", failure.count ? `${failure.label} · ${failure.count} issue(s)` : failure.label);
+  const topFailureCodeButton = document.getElementById("top-failure-code");
+  topFailureCodeButton.disabled = !topFailureCode;
+  topFailureCodeButton.textContent = topFailureCode
+    ? `${topFailureCode[0]} · ${topFailureCode[1]} issue(s)`
+    : "Not identified";
+  topFailureCodeButton.onclick = topFailureCode
+    ? () => {
+      filters.failureCode = topFailureCode[0];
+      document.getElementById("failure-code-filter").value = topFailureCode[0];
+      page = 1;
+      render();
+    }
+    : null;
   setText("top-block", block ? block[0] : "Not identified");
 }
 
@@ -958,9 +997,16 @@ function renderTable(items) {
     codes.className = "failure-codes";
     if ((item.failure_codes || []).length) {
       item.failure_codes.forEach((value) => {
-        const badge = document.createElement("span");
+        const badge = document.createElement("button");
+        badge.type = "button";
         badge.className = "failure-code";
         badge.append(text(value));
+        badge.addEventListener("click", () => {
+          filters.failureCode = value;
+          document.getElementById("failure-code-filter").value = value;
+          page = 1;
+          render();
+        });
         codes.append(badge);
       });
     } else {
@@ -1291,6 +1337,7 @@ function startDashboard(snapshot) {
   populateSelect("state-filter", "state");
   populateSelect("class-filter", "classification");
   populateSelect("validation-filter", "validation_status");
+  populateFailureCodeSelect();
   applyDefaultPeriod();
   document.getElementById("login-screen").hidden = true;
   document.getElementById("dashboard-shell").hidden = false;
@@ -1338,6 +1385,7 @@ document.getElementById("dashboard-filters").addEventListener("submit", (event) 
   ["state-filter", "state"],
   ["class-filter", "classification"],
   ["validation-filter", "validation"],
+  ["failure-code-filter", "failureCode"],
   ["age-filter", "age"],
 ].forEach(([id, key]) => {
   document.getElementById(id).addEventListener("change", (event) => {
