@@ -305,6 +305,7 @@ const filters = {
   site: "",
   block: "",
   state: "",
+  severity: "",
   classification: "",
   validation: "",
   failureCode: "",
@@ -445,6 +446,7 @@ function filteredItems() {
     if (filters.site && item.site !== filters.site) return false;
     if (filters.block && item.building_block !== filters.block) return false;
     if (filters.state && item.state !== filters.state) return false;
+    if (filters.severity && item.severity !== filters.severity) return false;
     if (filters.classification && item.classification !== filters.classification) return false;
     if (filters.validation && item.validation_status !== filters.validation) return false;
     if (
@@ -504,6 +506,7 @@ function renderActiveFilters() {
     site: "Site",
     block: "Building Block",
     state: "State",
+    severity: "Severity",
     classification: "Failure class",
     validation: "Validation",
     failureCode: "Failure code",
@@ -545,6 +548,7 @@ function renderActiveFilters() {
           site: "site-filter",
           block: "block-filter",
           state: "state-filter",
+          severity: "severity-filter",
           classification: "class-filter",
           validation: "validation-filter",
           failureCode: "failure-code-filter",
@@ -1364,6 +1368,7 @@ function startDashboard(snapshot) {
   populateSelect("site-filter", "site");
   populateSelect("block-filter", "building_block");
   populateSelect("state-filter", "state");
+  populateSelect("severity-filter", "severity");
   populateSelect("class-filter", "classification");
   populateSelect("validation-filter", "validation_status");
   populateFailureCodeSelect();
@@ -1412,6 +1417,7 @@ document.getElementById("dashboard-filters").addEventListener("submit", (event) 
   ["site-filter", "site"],
   ["block-filter", "block"],
   ["state-filter", "state"],
+  ["severity-filter", "severity"],
   ["class-filter", "classification"],
   ["validation-filter", "validation"],
   ["failure-code-filter", "failureCode"],
@@ -1422,6 +1428,12 @@ document.getElementById("dashboard-filters").addEventListener("submit", (event) 
     page = 1;
     render();
   });
+});
+document.getElementById("critical-open-card").addEventListener("click", () => {
+  filters.severity = "1 - Critical";
+  document.getElementById("severity-filter").value = filters.severity;
+  page = 1;
+  render();
 });
 document.getElementById("close-ado-detail").addEventListener("click", () => {
   document.getElementById("ado-detail-dialog").close();
