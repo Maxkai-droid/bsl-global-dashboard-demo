@@ -312,6 +312,7 @@ const filters = {
   validation: "",
   failureCode: "",
   age: "",
+  lifecycle: "",
   focus: "",
 };
 let allItems = [];
@@ -458,6 +459,8 @@ function filteredItems() {
       && !(item.failure_codes || []).includes(filters.failureCode)
     ) return false;
     if (filters.age && ageBand(item.age_days) !== filters.age) return false;
+    if (filters.lifecycle === "open" && !isOpen(item)) return false;
+    if (filters.lifecycle === "closed" && isOpen(item)) return false;
     if (filters.focus === "attention" && attention(item) !== "high") return false;
     if (filters.focus === "diagnostic" && hasDiagnostic(item)) return false;
     if (filters.focus === "repair" && Number(item.repair_count || 0) > 0) return false;
@@ -517,6 +520,7 @@ function renderActiveFilters() {
     validation: "Validation",
     failureCode: "Failure code",
     age: "Age",
+    lifecycle: "Lifecycle",
     query: "Search",
     focus: "Focus",
   };
@@ -527,6 +531,10 @@ function renderActiveFilters() {
     owner: "Unassigned",
     delay: "Missing delay record",
     ai: "Needs human review",
+  };
+  const lifecycleLabels = {
+    open: "Open",
+    closed: "Closed / resolved",
   };
   const active = Object.entries(filters).filter(([, value]) => value);
   const container = document.getElementById("active-filters");
@@ -542,13 +550,18 @@ function renderActiveFilters() {
     button.type = "button";
     button.className = "filter-chip";
     button.dataset.clearFilter = key;
-    button.append(text(`${labels[key]}: ${key === "focus" ? focusLabels[value] : value} ×`));
+    const displayValue = key === "focus"
+      ? focusLabels[value]
+      : key === "lifecycle"
+        ? lifecycleLabels[value]
+        : value;
+    button.append(text(`${labels[key]}: ${displayValue} ×`));
     button.addEventListener("click", () => {
       filters[key] = "";
       if (key === "createdFrom" || key === "createdTo") {
         periodScope = "";
         document.getElementById(key === "createdFrom" ? "from-date" : "through-date").value = "";
-      } else if (key !== "focus") {
+      } else if (key !== "focus" && key !== "lifecycle") {
         const input = document.getElementById({
           query: "search",
           site: "site-filter",
@@ -1273,6 +1286,9 @@ function renderCharts(items) {
 
 function render() {
   const items = filteredItems();
+  document.querySelectorAll("[data-lifecycle]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.lifecycle === filters.lifecycle);
+  });
   document.querySelectorAll("[data-focus]").forEach((button) => {
     button.classList.toggle("active", button.dataset.focus === filters.focus);
   });
@@ -1445,6 +1461,15 @@ document.getElementById("dashboard-filters").addEventListener("submit", (event) 
 ].forEach(([id, key]) => {
   document.getElementById(id).addEventListener("change", (event) => {
     filters[key] = event.target.value;
+    page = 1;
+    render();
+  });
+});
+document.querySelectorAll("[data-lifecycle]").forEach((button) => {
+  button.addEventListener("click", () => {
+    filters.lifecycle = filters.lifecycle === button.dataset.lifecycle
+      ? ""
+      : button.dataset.lifecycle;
     page = 1;
     render();
   });
