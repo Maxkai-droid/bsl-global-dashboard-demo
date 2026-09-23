@@ -306,6 +306,7 @@ const filters = {
   block: "",
   state: "",
   severity: "",
+  category: "",
   classification: "",
   validation: "",
   failureCode: "",
@@ -447,6 +448,7 @@ function filteredItems() {
     if (filters.block && item.building_block !== filters.block) return false;
     if (filters.state && item.state !== filters.state) return false;
     if (filters.severity && item.severity !== filters.severity) return false;
+    if (filters.category && item.detail?.category !== filters.category) return false;
     if (filters.classification && item.classification !== filters.classification) return false;
     if (filters.validation && item.validation_status !== filters.validation) return false;
     if (
@@ -507,6 +509,7 @@ function renderActiveFilters() {
     block: "Building Block",
     state: "State",
     severity: "Severity",
+    category: "Category",
     classification: "Failure class",
     validation: "Validation",
     failureCode: "Failure code",
@@ -549,6 +552,7 @@ function renderActiveFilters() {
           block: "block-filter",
           state: "state-filter",
           severity: "severity-filter",
+          category: "category-filter",
           classification: "class-filter",
           validation: "validation-filter",
           failureCode: "failure-code-filter",
@@ -1369,6 +1373,15 @@ function startDashboard(snapshot) {
   populateSelect("block-filter", "building_block");
   populateSelect("state-filter", "state");
   populateSelect("severity-filter", "severity");
+  const categorySelect = document.getElementById("category-filter");
+  [...new Set(allItems.map((item) => item.detail?.category).filter(Boolean))]
+    .sort()
+    .forEach((value) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.append(text(value));
+      categorySelect.append(option);
+    });
   populateSelect("class-filter", "classification");
   populateSelect("validation-filter", "validation_status");
   populateFailureCodeSelect();
@@ -1418,6 +1431,7 @@ document.getElementById("dashboard-filters").addEventListener("submit", (event) 
   ["block-filter", "block"],
   ["state-filter", "state"],
   ["severity-filter", "severity"],
+  ["category-filter", "category"],
   ["class-filter", "classification"],
   ["validation-filter", "validation"],
   ["failure-code-filter", "failureCode"],
