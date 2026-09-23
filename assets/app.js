@@ -1267,6 +1267,27 @@ function render() {
   renderCharts(items);
 }
 
+function renderCoverage(snapshot) {
+  const generatedYear = new Date(snapshot.generated_at).getFullYear();
+  setText(
+    "coverage-policy",
+    `Bug only · title contains [BSL] · created ${generatedYear} · recognized manufacturing site`,
+  );
+  setText("coverage-count", allItems.length);
+  const newest = [...allItems].sort((left, right) => {
+    const dateOrder = String(right.created_date || "").localeCompare(
+      String(left.created_date || ""),
+    );
+    return dateOrder || Number(right.ado_id || 0) - Number(left.ado_id || 0);
+  })[0];
+  const button = document.getElementById("coverage-newest-ado");
+  button.disabled = !newest;
+  button.textContent = newest
+    ? `ADO ${newest.ado_id} · ${newest.created_date}`
+    : "Not identified";
+  button.onclick = newest ? () => renderAdoDetail(newest) : null;
+}
+
 const fromBase64 = (value) => Uint8Array.from(
   atob(value),
   (character) => character.charCodeAt(0),
@@ -1332,6 +1353,7 @@ function startDashboard(snapshot) {
   setText("source-revision", snapshot.source_revision);
   setText("published-count", allItems.length);
   setText("total-count", allItems.length);
+  renderCoverage(snapshot);
   populateSelect("site-filter", "site");
   populateSelect("block-filter", "building_block");
   populateSelect("state-filter", "state");
