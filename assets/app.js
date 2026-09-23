@@ -307,6 +307,7 @@ const filters = {
   state: "",
   severity: "",
   category: "",
+  owner: "",
   classification: "",
   validation: "",
   failureCode: "",
@@ -449,6 +450,7 @@ function filteredItems() {
     if (filters.state && item.state !== filters.state) return false;
     if (filters.severity && item.severity !== filters.severity) return false;
     if (filters.category && item.detail?.category !== filters.category) return false;
+    if (filters.owner && item.owner !== filters.owner) return false;
     if (filters.classification && item.classification !== filters.classification) return false;
     if (filters.validation && item.validation_status !== filters.validation) return false;
     if (
@@ -510,6 +512,7 @@ function renderActiveFilters() {
     state: "State",
     severity: "Severity",
     category: "Category",
+    owner: "Owner",
     classification: "Failure class",
     validation: "Validation",
     failureCode: "Failure code",
@@ -553,6 +556,7 @@ function renderActiveFilters() {
           state: "state-filter",
           severity: "severity-filter",
           category: "category-filter",
+          owner: "owner-filter",
           classification: "class-filter",
           validation: "validation-filter",
           failureCode: "failure-code-filter",
@@ -1382,6 +1386,7 @@ function startDashboard(snapshot) {
       option.append(text(value));
       categorySelect.append(option);
     });
+  populateSelect("owner-filter", "owner");
   populateSelect("class-filter", "classification");
   populateSelect("validation-filter", "validation_status");
   populateFailureCodeSelect();
@@ -1432,6 +1437,7 @@ document.getElementById("dashboard-filters").addEventListener("submit", (event) 
   ["state-filter", "state"],
   ["severity-filter", "severity"],
   ["category-filter", "category"],
+  ["owner-filter", "owner"],
   ["class-filter", "classification"],
   ["validation-filter", "validation"],
   ["failure-code-filter", "failureCode"],
