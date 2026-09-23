@@ -313,6 +313,7 @@ const filters = {
   failureCode: "",
   age: "",
   lifecycle: "",
+  recent: "",
   focus: "",
 };
 let allItems = [];
@@ -461,6 +462,8 @@ function filteredItems() {
     if (filters.age && ageBand(item.age_days) !== filters.age) return false;
     if (filters.lifecycle === "open" && !isOpen(item)) return false;
     if (filters.lifecycle === "closed" && isOpen(item)) return false;
+    if (filters.recent === "new-week" && !item.created_this_week) return false;
+    if (filters.recent === "closed-week" && !item.closed_this_week) return false;
     if (filters.focus === "attention" && attention(item) !== "high") return false;
     if (filters.focus === "diagnostic" && hasDiagnostic(item)) return false;
     if (filters.focus === "repair" && Number(item.repair_count || 0) > 0) return false;
@@ -521,6 +524,7 @@ function renderActiveFilters() {
     failureCode: "Failure code",
     age: "Age",
     lifecycle: "Lifecycle",
+    recent: "Recent activity",
     query: "Search",
     focus: "Focus",
   };
@@ -535,6 +539,10 @@ function renderActiveFilters() {
   const lifecycleLabels = {
     open: "Open",
     closed: "Closed / resolved",
+  };
+  const recentLabels = {
+    "new-week": "Created in 7 days",
+    "closed-week": "Closed in 7 days",
   };
   const active = Object.entries(filters).filter(([, value]) => value);
   const container = document.getElementById("active-filters");
@@ -554,6 +562,8 @@ function renderActiveFilters() {
       ? focusLabels[value]
       : key === "lifecycle"
         ? lifecycleLabels[value]
+        : key === "recent"
+          ? recentLabels[value]
         : value;
     button.append(text(`${labels[key]}: ${displayValue} ×`));
     button.addEventListener("click", () => {
@@ -561,7 +571,7 @@ function renderActiveFilters() {
       if (key === "createdFrom" || key === "createdTo") {
         periodScope = "";
         document.getElementById(key === "createdFrom" ? "from-date" : "through-date").value = "";
-      } else if (key !== "focus" && key !== "lifecycle") {
+      } else if (key !== "focus" && key !== "lifecycle" && key !== "recent") {
         const input = document.getElementById({
           query: "search",
           site: "site-filter",
@@ -1474,8 +1484,27 @@ document.querySelectorAll("[data-lifecycle]").forEach((button) => {
     render();
   });
 });
+document.getElementById("open-card").addEventListener("click", () => {
+  filters.lifecycle = "open";
+  filters.recent = "";
+  page = 1;
+  render();
+});
+document.getElementById("new-week-card").addEventListener("click", () => {
+  filters.recent = "new-week";
+  page = 1;
+  render();
+});
+document.getElementById("closed-week-card").addEventListener("click", () => {
+  filters.lifecycle = "closed";
+  filters.recent = "closed-week";
+  page = 1;
+  render();
+});
 document.getElementById("critical-open-card").addEventListener("click", () => {
   filters.severity = "1 - Critical";
+  filters.lifecycle = "open";
+  filters.recent = "";
   document.getElementById("severity-filter").value = filters.severity;
   page = 1;
   render();
