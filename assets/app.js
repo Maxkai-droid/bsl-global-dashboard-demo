@@ -325,6 +325,7 @@ let page = 1;
 let pageSize = 25;
 let sortKey = "attention_score";
 let sortDirection = "desc";
+let snapshotGeneratedAt = "";
 
 const text = (value) => document.createTextNode(String(value ?? ""));
 const setText = (id, value) => { document.getElementById(id).textContent = value; };
@@ -366,6 +367,22 @@ function applyPeriod(scope) {
 function applyDefaultPeriod() {
   applyPeriod("month");
   if (allItems.length && filteredItems().length === 0) applyPeriod("all");
+}
+
+function updateSnapshotFreshness() {
+  if (!snapshotGeneratedAt) return;
+  const ageMinutes = Math.max(
+    0,
+    Math.floor((Date.now() - Date.parse(snapshotGeneratedAt)) / 60000),
+  );
+  const status = ageMinutes <= 30
+    ? ["Fresh", "success"]
+    : ageMinutes <= 60
+      ? ["Aging", "running"]
+      : ["Stale", "failure"];
+  const badge = document.getElementById("snapshot-freshness");
+  badge.className = `sync-badge ${status[1]}`;
+  badge.textContent = `${status[0]} · ${ageMinutes}m`;
 }
 
 function isOpen(item) {
@@ -1453,7 +1470,9 @@ async function decryptSnapshot(password) {
 function startDashboard(snapshot) {
   validateSnapshot(snapshot);
   allItems = Array.isArray(snapshot.items) ? snapshot.items : [];
+  snapshotGeneratedAt = snapshot.generated_at;
   setText("generated-at", new Date(snapshot.generated_at).toLocaleString());
+  updateSnapshotFreshness();
   setText("source-revision", snapshot.source_revision);
   setText("published-count", allItems.length);
   setText("total-count", allItems.length);
@@ -1516,6 +1535,7 @@ document.getElementById("dashboard-filters").addEventListener("submit", (event) 
   page = 1;
   render();
 });
+window.setInterval(updateSnapshotFreshness, 60000);
 document.getElementById("export-filtered-csv").addEventListener("click", exportFilteredCsv);
 [
   ["site-filter", "site"],
