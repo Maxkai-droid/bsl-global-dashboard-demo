@@ -1302,6 +1302,14 @@ function render() {
   document.querySelectorAll("[data-focus]").forEach((button) => {
     button.classList.toggle("active", button.dataset.focus === filters.focus);
   });
+  document.querySelectorAll("[data-aging]").forEach((button) => {
+    button.classList.toggle(
+      "active",
+      button.dataset.aging === "stale-open"
+        && filters.lifecycle === "open"
+        && filters.age === ">30",
+    );
+  });
   document.querySelectorAll("[data-period]").forEach((button) => {
     button.classList.toggle("active", button.dataset.period === periodScope);
   });
@@ -1480,6 +1488,16 @@ document.querySelectorAll("[data-lifecycle]").forEach((button) => {
     filters.lifecycle = filters.lifecycle === button.dataset.lifecycle
       ? ""
       : button.dataset.lifecycle;
+    page = 1;
+    render();
+  });
+});
+document.querySelectorAll("[data-aging]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const active = filters.lifecycle === "open" && filters.age === ">30";
+    filters.lifecycle = active ? "" : "open";
+    filters.age = active ? "" : ">30";
+    document.getElementById("age-filter").value = filters.age;
     page = 1;
     render();
   });
