@@ -298,6 +298,23 @@ const numericSorts = new Set([
   "lifecycle_days",
   "attention_score",
 ]);
+const dashboardStateKey = "bsl-dashboard-view-v1";
+const dashboardSortKeys = new Set([
+  "ado_id",
+  "created_date",
+  "site",
+  "building_block",
+  "failure_error",
+  "failure_codes",
+  "classification",
+  "units_impacted",
+  "repair_count",
+  "owner",
+  "state",
+  "severity",
+  "lifecycle_days",
+  "attention_score",
+]);
 const filters = {
   query: "",
   createdFrom: "",
@@ -367,6 +384,113 @@ function applyPeriod(scope) {
 function applyDefaultPeriod() {
   applyPeriod("month");
   if (allItems.length && filteredItems().length === 0) applyPeriod("all");
+}
+
+function selectHasValue(id, value) {
+  return [...document.getElementById(id).options].some(
+    (option) => option.value === value,
+  );
+}
+
+function restoreDashboardState() {
+  let saved;
+  try {
+    const serialized = window.sessionStorage.getItem(dashboardStateKey);
+    if (!serialized || serialized.length > 4096) return false;
+    saved = JSON.parse(serialized);
+  } catch (_error) {
+    return false;
+  }
+  if (!saved || saved.version !== 1 || typeof saved.filters !== "object") {
+    return false;
+  }
+  const selectFilters = {
+    site: "site-filter",
+    block: "block-filter",
+    state: "state-filter",
+    severity: "severity-filter",
+    category: "category-filter",
+    owner: "owner-filter",
+    classification: "class-filter",
+    validation: "validation-filter",
+    failureCode: "failure-code-filter",
+    age: "age-filter",
+  };
+  Object.entries(selectFilters).forEach(([key, id]) => {
+    const value = typeof saved.filters[key] === "string" ? saved.filters[key] : "";
+    if (value && selectHasValue(id, value)) {
+      filters[key] = value;
+      document.getElementById(id).value = value;
+    }
+  });
+  ["createdFrom", "createdTo"].forEach((key) => {
+    const value = saved.filters[key];
+    if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      filters[key] = value;
+    }
+  });
+  if (filters.createdFrom && filters.createdTo && filters.createdFrom > filters.createdTo) {
+    filters.createdFrom = "";
+    filters.createdTo = "";
+  }
+  document.getElementById("from-date").value = filters.createdFrom;
+  document.getElementById("through-date").value = filters.createdTo;
+  if (["open", "closed"].includes(saved.filters.lifecycle)) {
+    filters.lifecycle = saved.filters.lifecycle;
+  }
+  if (["new-week", "closed-week"].includes(saved.filters.recent)) {
+    filters.recent = saved.filters.recent;
+  }
+  if (["attention", "diagnostic", "repair", "owner", "delay", "ai"].includes(
+    saved.filters.focus,
+  )) {
+    filters.focus = saved.filters.focus;
+  }
+  if (["month", "all"].includes(saved.periodScope)) periodScope = saved.periodScope;
+  if ([10, 25, 50].includes(saved.pageSize)) {
+    pageSize = saved.pageSize;
+    document.getElementById("page-size").value = String(pageSize);
+  }
+  if (dashboardSortKeys.has(saved.sortKey)) sortKey = saved.sortKey;
+  if (["asc", "desc"].includes(saved.sortDirection)) {
+    sortDirection = saved.sortDirection;
+  }
+  return true;
+}
+
+function persistDashboardState() {
+  const persistedFilters = {};
+  [
+    "createdFrom",
+    "createdTo",
+    "site",
+    "block",
+    "state",
+    "severity",
+    "category",
+    "owner",
+    "classification",
+    "validation",
+    "failureCode",
+    "age",
+    "lifecycle",
+    "recent",
+    "focus",
+  ].forEach((key) => {
+    persistedFilters[key] = filters[key];
+  });
+  try {
+    window.sessionStorage.setItem(dashboardStateKey, JSON.stringify({
+      version: 1,
+      filters: persistedFilters,
+      periodScope,
+      pageSize,
+      sortKey,
+      sortDirection,
+    }));
+  } catch (_error) {
+    // Storage may be unavailable in hardened or private browser contexts.
+  }
 }
 
 function updateSnapshotFreshness() {
@@ -1358,6 +1482,7 @@ function renderCharts(items) {
 
 function render() {
   const items = filteredItems();
+  persistDashboardState();
   document.querySelectorAll("[data-lifecycle]").forEach((button) => {
     button.classList.toggle("active", button.dataset.lifecycle === filters.lifecycle);
   });
@@ -1494,7 +1619,7 @@ function startDashboard(snapshot) {
   populateSelect("class-filter", "classification");
   populateSelect("validation-filter", "validation_status");
   populateFailureCodeSelect();
-  applyDefaultPeriod();
+  if (!restoreDashboardState()) applyDefaultPeriod();
   document.getElementById("login-screen").hidden = true;
   document.getElementById("dashboard-shell").hidden = false;
   window.scrollTo(0, 0);
