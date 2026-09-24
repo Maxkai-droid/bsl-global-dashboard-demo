@@ -965,6 +965,51 @@ function sortedItems(items) {
   });
 }
 
+function csvCell(value) {
+  const raw = String(value ?? "");
+  const safe = /^[\s]*[=+\-@]/.test(raw) ? `'${raw}` : raw;
+  return `"${safe.replaceAll('"', '""')}"`;
+}
+
+function exportFilteredCsv() {
+  const rows = sortedItems(filteredItems());
+  const columns = [
+    "ADO",
+    "Created",
+    "Site",
+    "Building Block",
+    "Failed Task / Error",
+    "Failure Codes",
+    "Classification",
+    "Owner",
+    "State",
+    "Severity",
+    "Age / Resolution Days",
+  ];
+  const csvRows = rows.map((item) => [
+    item.ado_id,
+    item.created_date,
+    item.site,
+    item.building_block,
+    item.failure_error,
+    (item.failure_codes || []).join(", "),
+    item.classification,
+    item.owner || "Unassigned",
+    item.state,
+    item.severity,
+    isOpen(item) ? item.age_days : item.resolution_days,
+  ]);
+  const csv = `\uFEFF${[columns, ...csvRows]
+    .map((row) => row.map(csvCell).join(","))
+    .join("\r\n")}\r\n`;
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `bsl-filtered-${isoDate(new Date())}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 function renderTable(items) {
   const ordered = sortedItems(items);
   const pageCount = Math.max(1, Math.ceil(ordered.length / pageSize));
@@ -1471,6 +1516,7 @@ document.getElementById("dashboard-filters").addEventListener("submit", (event) 
   page = 1;
   render();
 });
+document.getElementById("export-filtered-csv").addEventListener("click", exportFilteredCsv);
 [
   ["site-filter", "site"],
   ["block-filter", "block"],
