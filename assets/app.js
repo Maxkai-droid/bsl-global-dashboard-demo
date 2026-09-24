@@ -1299,6 +1299,12 @@ function render() {
   document.querySelectorAll("[data-lifecycle]").forEach((button) => {
     button.classList.toggle("active", button.dataset.lifecycle === filters.lifecycle);
   });
+  document.querySelectorAll("[data-open-state]").forEach((button) => {
+    button.classList.toggle(
+      "active",
+      filters.lifecycle === "open" && filters.state === button.dataset.openState,
+    );
+  });
   document.querySelectorAll("[data-focus]").forEach((button) => {
     button.classList.toggle("active", button.dataset.focus === filters.focus);
   });
@@ -1488,6 +1494,17 @@ document.querySelectorAll("[data-lifecycle]").forEach((button) => {
     filters.lifecycle = filters.lifecycle === button.dataset.lifecycle
       ? ""
       : button.dataset.lifecycle;
+    page = 1;
+    render();
+  });
+});
+document.querySelectorAll("[data-open-state]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const active = filters.lifecycle === "open"
+      && filters.state === button.dataset.openState;
+    filters.lifecycle = active ? "" : "open";
+    filters.state = active ? "" : button.dataset.openState;
+    document.getElementById("state-filter").value = filters.state;
     page = 1;
     render();
   });
