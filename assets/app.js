@@ -1151,6 +1151,21 @@ function exportFilteredCsv() {
   URL.revokeObjectURL(url);
 }
 
+async function copyFilteredAdoIds() {
+  const status = document.getElementById("copy-filtered-ado-status");
+  const ids = sortedItems(filteredItems()).map((item) => String(item.ado_id));
+  if (!ids.length) {
+    status.textContent = "No matching ADO IDs to copy.";
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(ids.join("\n"));
+    status.textContent = `Copied ${ids.length} filtered ADO ID(s).`;
+  } catch (_error) {
+    status.textContent = "Clipboard access was blocked by the browser.";
+  }
+}
+
 function renderTable(items) {
   const ordered = sortedItems(items);
   const pageCount = Math.max(1, Math.ceil(ordered.length / pageSize));
@@ -1662,6 +1677,7 @@ document.getElementById("dashboard-filters").addEventListener("submit", (event) 
 });
 window.setInterval(updateSnapshotFreshness, 60000);
 document.getElementById("export-filtered-csv").addEventListener("click", exportFilteredCsv);
+document.getElementById("copy-filtered-ado-ids").addEventListener("click", copyFilteredAdoIds);
 [
   ["site-filter", "site"],
   ["block-filter", "block"],
