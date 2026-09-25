@@ -315,6 +315,22 @@ const dashboardSortKeys = new Set([
   "lifecycle_days",
   "attention_score",
 ]);
+const dashboardSortLabels = {
+  ado_id: "ADO",
+  created_date: "Created",
+  site: "Site",
+  building_block: "Building block",
+  failure_error: "Failed task / error",
+  failure_codes: "Failure codes",
+  classification: "Classification",
+  units_impacted: "Quantity affected",
+  repair_count: "Repairs",
+  owner: "Owner",
+  state: "State",
+  severity: "Severity",
+  lifecycle_days: "Age / resolution time",
+  attention_score: "Operational attention",
+};
 const filters = {
   query: "",
   createdFrom: "",
@@ -1321,7 +1337,7 @@ function renderTable(items) {
   document.getElementById("empty").hidden = items.length !== 0;
   setText(
     "queue-summary",
-    `Showing ${items.length ? start + 1 : 0}–${Math.min(start + pageSize, items.length)} of ${items.length} matching item(s) · prioritized by operational attention`,
+    `Showing ${items.length ? start + 1 : 0}–${Math.min(start + pageSize, items.length)} of ${items.length} matching item(s) · sorted by ${dashboardSortLabels[sortKey]} ${sortDirection === "asc" ? "ascending" : "descending"}`,
   );
   const pagination = document.getElementById("pagination");
   pagination.hidden = pageCount <= 1;
