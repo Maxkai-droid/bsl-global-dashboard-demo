@@ -1318,6 +1318,17 @@ function renderTable(items) {
   });
 }
 
+function renderQuickQueueCounts() {
+  const open = allItems.filter(isOpen);
+  setText("new-open-count", open.filter((item) => item.state === "New").length);
+  setText(
+    "committed-open-count",
+    open.filter((item) => item.state === "Committed").length,
+  );
+  setText("aged-open-count", open.filter((item) => Number(item.age_days) > 30).length);
+  setText("unassigned-open-count", open.filter((item) => !item.owner).length);
+}
+
 function renderHealth(items) {
   const container = document.getElementById("site-health");
   const sites = [...new Set(items.map((item) => item.site))].sort();
@@ -1635,6 +1646,7 @@ function startDashboard(snapshot) {
   populateSelect("validation-filter", "validation_status");
   populateFailureCodeSelect();
   if (!restoreDashboardState()) applyDefaultPeriod();
+  renderQuickQueueCounts();
   document.getElementById("login-screen").hidden = true;
   document.getElementById("dashboard-shell").hidden = false;
   window.scrollTo(0, 0);
