@@ -493,6 +493,16 @@ function persistDashboardState() {
   }
 }
 
+function resetDashboardFilters() {
+  Object.keys(filters).forEach((key) => { filters[key] = ""; });
+  document.getElementById("dashboard-filters").reset();
+  applyDefaultPeriod();
+  sortKey = "attention_score";
+  sortDirection = "desc";
+  page = 1;
+  render();
+}
+
 function updateSnapshotFreshness() {
   if (!snapshotGeneratedAt) return;
   const ageMinutes = Math.max(
@@ -1790,15 +1800,11 @@ document.querySelectorAll("[data-period]").forEach((button) => {
     render();
   });
 });
-document.getElementById("reset-filters").addEventListener("click", () => {
-  Object.keys(filters).forEach((key) => { filters[key] = ""; });
-  document.getElementById("dashboard-filters").reset();
-  applyDefaultPeriod();
-  sortKey = "attention_score";
-  sortDirection = "desc";
-  page = 1;
-  render();
-});
+document.getElementById("reset-filters").addEventListener("click", resetDashboardFilters);
+document.getElementById("empty-reset-filters").addEventListener(
+  "click",
+  resetDashboardFilters,
+);
 document.getElementById("issues-created-tab").addEventListener("click", () => {
   siteChartMode = "issues";
   document.getElementById("issues-created-tab").classList.add("active");
