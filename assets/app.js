@@ -1168,6 +1168,13 @@ async function copyFilteredAdoIds() {
 
 function renderTable(items) {
   const ordered = sortedItems(items);
+  const open = items.filter(isOpen);
+  const unassigned = open.filter((item) => !item.owner).length;
+  const aged = open.filter((item) => Number(item.age_days) > 30).length;
+  setText(
+    "filtered-decision-summary",
+    `${open.length} open · ${unassigned} unassigned · ${aged} aged >30d`,
+  );
   const pageCount = Math.max(1, Math.ceil(ordered.length / pageSize));
   page = Math.min(page, pageCount);
   const start = (page - 1) * pageSize;
