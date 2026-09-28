@@ -1360,6 +1360,22 @@ function renderQuickQueueCounts() {
   );
   setText("aged-open-count", open.filter((item) => Number(item.age_days) > 30).length);
   setText("unassigned-open-count", open.filter((item) => !item.owner).length);
+  setText(
+    "high-attention-count",
+    allItems.filter((item) => attention(item) === "high").length,
+  );
+  setText(
+    "missing-diagnostic-count",
+    allItems.filter((item) => !hasDiagnostic(item)).length,
+  );
+  setText(
+    "no-repair-count",
+    allItems.filter((item) => Number(item.repair_count || 0) === 0).length,
+  );
+  setText(
+    "missing-delay-count",
+    allItems.filter((item) => !item.delay_recorded).length,
+  );
 }
 
 function renderHealth(items) {
