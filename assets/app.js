@@ -1755,6 +1755,28 @@ document.getElementById("dashboard-filters").addEventListener("submit", (event) 
   render();
 });
 window.setInterval(updateSnapshotFreshness, 60000);
+window.addEventListener("keydown", (event) => {
+  const target = event.target;
+  const editing = target instanceof HTMLInputElement
+    || target instanceof HTMLTextAreaElement
+    || target instanceof HTMLSelectElement
+    || target.isContentEditable;
+  const search = document.getElementById("search");
+  if (event.key === "/" && !editing && !document.getElementById("dashboard-shell").hidden) {
+    event.preventDefault();
+    search.focus();
+  } else if (
+    event.key === "Escape"
+    && document.activeElement === search
+    && (search.value || filters.query)
+  ) {
+    event.preventDefault();
+    search.value = "";
+    filters.query = "";
+    page = 1;
+    render();
+  }
+});
 document.getElementById("export-filtered-csv").addEventListener("click", exportFilteredCsv);
 document.getElementById("copy-filtered-ado-ids").addEventListener("click", copyFilteredAdoIds);
 document.getElementById("copy-filtered-ado-links").addEventListener(
