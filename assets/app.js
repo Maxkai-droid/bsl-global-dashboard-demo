@@ -1277,6 +1277,13 @@ function renderTable(items) {
     "filtered-decision-summary",
     `${open.length} open · ${unassigned} unassigned · ${aged} aged >30d`,
   );
+  const ageBands = ["0-7", "8-14", "15-30", ">30"].map(
+    (band) => items.filter((item) => ageBand(item.age_days) === band).length,
+  );
+  setText(
+    "filtered-age-distribution",
+    `Age: 0–7d ${ageBands[0]} · 8–14d ${ageBands[1]} · 15–30d ${ageBands[2]} · >30d ${ageBands[3]}`,
+  );
   const pageCount = Math.max(1, Math.ceil(ordered.length / pageSize));
   page = Math.min(page, pageCount);
   const start = (page - 1) * pageSize;
