@@ -1232,6 +1232,32 @@ async function copyFilteredAdoLinks() {
   }
 }
 
+async function copyFilteredQueueSummary() {
+  const status = document.getElementById("copy-filtered-queue-summary-status");
+  const items = sortedItems(filteredItems());
+  if (!items.length) {
+    status.textContent = "No matching queue summary to copy.";
+    return;
+  }
+  const boundedItems = items.slice(0, 25);
+  const remaining = items.length - boundedItems.length;
+  const lines = [
+    `BSL filtered queue: ${items.length} item(s)`,
+    document.getElementById("filtered-decision-summary").textContent.trim(),
+    document.getElementById("filtered-newest-item").textContent.trim(),
+    `ADO IDs (first ${boundedItems.length}): ${boundedItems.map((item) => item.ado_id).join(", ")}`,
+  ];
+  if (remaining) {
+    lines.push(`Additional matching items: ${remaining} (use filtered CSV for the complete queue)`);
+  }
+  try {
+    await navigator.clipboard.writeText(lines.join("\n"));
+    status.textContent = `Copied bounded summary for ${items.length} filtered item(s).`;
+  } catch (_error) {
+    status.textContent = "Clipboard access was blocked by the browser.";
+  }
+}
+
 function renderTable(items) {
   const ordered = sortedItems(items);
   const newest = [...items].sort((left, right) => (
@@ -1822,6 +1848,10 @@ document.getElementById("copy-filtered-ado-ids").addEventListener("click", copyF
 document.getElementById("copy-filtered-ado-links").addEventListener(
   "click",
   copyFilteredAdoLinks,
+);
+document.getElementById("copy-filtered-queue-summary").addEventListener(
+  "click",
+  copyFilteredQueueSummary,
 );
 [
   ["site-filter", "site"],
