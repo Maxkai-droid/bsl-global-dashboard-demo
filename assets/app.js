@@ -1212,6 +1212,16 @@ async function copyFilteredAdoLinks() {
 
 function renderTable(items) {
   const ordered = sortedItems(items);
+  const newest = [...items].sort((left, right) => (
+    String(right.created_date).localeCompare(String(left.created_date))
+    || Number(right.ado_id) - Number(left.ado_id)
+  ))[0];
+  setText(
+    "filtered-newest-item",
+    newest
+      ? `Newest in scope: ADO ${newest.ado_id} · ${newest.created_date}`
+      : "Newest in scope: None",
+  );
   const open = items.filter(isOpen);
   const unassigned = open.filter((item) => !item.owner).length;
   const aged = open.filter((item) => Number(item.age_days) > 30).length;
