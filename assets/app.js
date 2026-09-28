@@ -1418,8 +1418,10 @@ function renderTable(items) {
   const pagination = document.getElementById("pagination");
   pagination.hidden = pageCount <= 1;
   setText("page-label", `Page ${page} of ${pageCount}`);
+  document.getElementById("first-page").classList.toggle("disabled", page === 1);
   document.getElementById("previous-page").classList.toggle("disabled", page === 1);
   document.getElementById("next-page").classList.toggle("disabled", page === pageCount);
+  document.getElementById("last-page").classList.toggle("disabled", page === pageCount);
   document.querySelectorAll("[data-sort]").forEach((button) => {
     const active = button.dataset.sort === sortKey;
     button.classList.toggle("active", active);
@@ -1978,10 +1980,23 @@ document.getElementById("previous-page").addEventListener("click", () => {
     render();
   }
 });
+document.getElementById("first-page").addEventListener("click", () => {
+  if (page > 1) {
+    page = 1;
+    render();
+  }
+});
 document.getElementById("next-page").addEventListener("click", () => {
   const pageCount = Math.max(1, Math.ceil(filteredItems().length / pageSize));
   if (page < pageCount) {
     page += 1;
+    render();
+  }
+});
+document.getElementById("last-page").addEventListener("click", () => {
+  const pageCount = Math.max(1, Math.ceil(filteredItems().length / pageSize));
+  if (page < pageCount) {
+    page = pageCount;
     render();
   }
 });
