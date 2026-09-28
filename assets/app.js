@@ -1192,6 +1192,23 @@ async function copyFilteredAdoIds() {
   }
 }
 
+async function copyFilteredAdoLinks() {
+  const status = document.getElementById("copy-filtered-ado-links-status");
+  const links = sortedItems(filteredItems())
+    .map(validatedAdoUrl)
+    .filter(Boolean);
+  if (!links.length) {
+    status.textContent = "No validated ADO links are available to copy.";
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(links.join("\n"));
+    status.textContent = `Copied ${links.length} filtered ADO link(s).`;
+  } catch (_error) {
+    status.textContent = "Clipboard access was blocked by the browser.";
+  }
+}
+
 function renderTable(items) {
   const ordered = sortedItems(items);
   const open = items.filter(isOpen);
@@ -1739,6 +1756,10 @@ document.getElementById("dashboard-filters").addEventListener("submit", (event) 
 window.setInterval(updateSnapshotFreshness, 60000);
 document.getElementById("export-filtered-csv").addEventListener("click", exportFilteredCsv);
 document.getElementById("copy-filtered-ado-ids").addEventListener("click", copyFilteredAdoIds);
+document.getElementById("copy-filtered-ado-links").addEventListener(
+  "click",
+  copyFilteredAdoLinks,
+);
 [
   ["site-filter", "site"],
   ["block-filter", "block"],
