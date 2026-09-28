@@ -717,8 +717,9 @@ function renderActiveFilters() {
   container.hidden = active.length === 0;
   if (!active.length) return;
   const heading = document.createElement("span");
+  heading.id = "active-filter-count";
   heading.className = "small fw-semibold text-secondary";
-  heading.append(text("Active:"));
+  heading.append(text(`Active (${active.length}):`));
   container.append(heading);
   active.forEach(([key, value]) => {
     const button = document.createElement("button");
