@@ -457,7 +457,15 @@ function restoreDashboardState() {
   if (["new-week", "closed-week"].includes(saved.filters.recent)) {
     filters.recent = saved.filters.recent;
   }
-  if (["attention", "diagnostic", "repair", "owner", "delay", "ai"].includes(
+  if ([
+    "attention",
+    "diagnostic",
+    "repair",
+    "owner",
+    "delay",
+    "ai",
+    "classification-evidence",
+  ].includes(
     saved.filters.focus,
   )) {
     filters.focus = saved.filters.focus;
@@ -551,6 +559,16 @@ function hasDiagnostic(item) {
   return Boolean(String(item.failure_error || "").trim() || (item.failure_codes || []).length);
 }
 
+function classificationEvidenceReady(item) {
+  return (
+    !["", "Unclassified", "Undetermined"].includes(String(item.classification || ""))
+    && hasDiagnostic(item)
+    && Boolean(String(item.detail?.failure_evidence || item.detail?.root_cause || "").trim())
+    && ["Medium", "High", "Confirmed"].includes(String(item.detail?.confidence || ""))
+    && ["Under review", "Confirmed", "Closed"].includes(String(item.validation_status || ""))
+  );
+}
+
 function attentionScore(item) {
   let score = 0;
   if (isOpen(item)) {
@@ -637,6 +655,9 @@ function filteredItems() {
     if (filters.focus === "owner" && (item.owner || !isOpen(item))) return false;
     if (filters.focus === "delay" && item.delay_recorded) return false;
     if (filters.focus === "ai" && !item.ai_review) return false;
+    if (filters.focus === "classification-evidence" && classificationEvidenceReady(item)) {
+      return false;
+    }
     if (!query) return true;
     return [
       item.ado_id,
@@ -702,6 +723,7 @@ function renderActiveFilters() {
     owner: "Unassigned",
     delay: "Missing delay record",
     ai: "Needs human review",
+    "classification-evidence": "Needs classification evidence",
   };
   const lifecycleLabels = {
     open: "Open",
@@ -1407,6 +1429,10 @@ function renderQuickQueueCounts() {
   setText(
     "needs-ai-review-count",
     allItems.filter((item) => item.ai_review).length,
+  );
+  setText(
+    "needs-classification-evidence-count",
+    allItems.filter((item) => !classificationEvidenceReady(item)).length,
   );
 }
 
