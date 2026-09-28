@@ -1404,6 +1404,10 @@ function renderQuickQueueCounts() {
     "missing-delay-count",
     allItems.filter((item) => !item.delay_recorded).length,
   );
+  setText(
+    "needs-ai-review-count",
+    allItems.filter((item) => item.ai_review).length,
+  );
 }
 
 function renderHealth(items) {
