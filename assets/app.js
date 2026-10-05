@@ -1316,6 +1316,18 @@ function renderTable(items) {
     "filtered-severity-distribution",
     `Severity: ${severityDistribution || "None"}`,
   );
+  const classificationDistribution = [...payloadFailureClasses]
+    .map((classification) => [
+      classification,
+      items.filter((item) => item.classification === classification).length,
+    ])
+    .filter(([, count]) => count)
+    .map(([classification, count]) => `${classification} ${count}`)
+    .join(" · ");
+  setText(
+    "filtered-classification-distribution",
+    `Classification: ${classificationDistribution || "None"}`,
+  );
   const pageCount = Math.max(1, Math.ceil(ordered.length / pageSize));
   page = Math.min(page, pageCount);
   const start = (page - 1) * pageSize;
