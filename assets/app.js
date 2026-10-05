@@ -1300,6 +1300,22 @@ function renderTable(items) {
     "filtered-state-distribution",
     `State: ${stateDistribution || "None"}`,
   );
+  const severityDistribution = [
+    "1 - Critical",
+    "2 - High",
+    "3 - Medium",
+    "4 - Low",
+  ].map((severity) => [
+    severity,
+    items.filter((item) => item.severity === severity).length,
+  ])
+    .filter(([, count]) => count)
+    .map(([severity, count]) => `${severity} ${count}`)
+    .join(" · ");
+  setText(
+    "filtered-severity-distribution",
+    `Severity: ${severityDistribution || "None"}`,
+  );
   const pageCount = Math.max(1, Math.ceil(ordered.length / pageSize));
   page = Math.min(page, pageCount);
   const start = (page - 1) * pageSize;
