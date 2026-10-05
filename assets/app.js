@@ -1284,6 +1284,22 @@ function renderTable(items) {
     "filtered-age-distribution",
     `Age: 0–7d ${ageBands[0]} · 8–14d ${ageBands[1]} · 15–30d ${ageBands[2]} · >30d ${ageBands[3]}`,
   );
+  const stateDistribution = [
+    "New",
+    "Active",
+    "Committed",
+    "Resolved",
+    "Closed",
+    "Done",
+    "Completed",
+  ].map((state) => [state, items.filter((item) => item.state === state).length])
+    .filter(([, count]) => count)
+    .map(([state, count]) => `${state} ${count}`)
+    .join(" · ");
+  setText(
+    "filtered-state-distribution",
+    `State: ${stateDistribution || "None"}`,
+  );
   const pageCount = Math.max(1, Math.ceil(ordered.length / pageSize));
   page = Math.min(page, pageCount);
   const start = (page - 1) * pageSize;
