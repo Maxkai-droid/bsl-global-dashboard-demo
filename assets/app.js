@@ -1328,6 +1328,18 @@ function renderTable(items) {
     "filtered-classification-distribution",
     `Classification: ${classificationDistribution || "None"}`,
   );
+  const validationDistribution = [...payloadValidationStatuses]
+    .map((validation) => [
+      validation,
+      items.filter((item) => item.validation_status === validation).length,
+    ])
+    .filter(([, count]) => count)
+    .map(([validation, count]) => `${validation} ${count}`)
+    .join(" · ");
+  setText(
+    "filtered-validation-distribution",
+    `Validation: ${validationDistribution || "None"}`,
+  );
   const pageCount = Math.max(1, Math.ceil(ordered.length / pageSize));
   page = Math.min(page, pageCount);
   const start = (page - 1) * pageSize;
