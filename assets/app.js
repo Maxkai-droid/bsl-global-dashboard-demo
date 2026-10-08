@@ -1350,6 +1350,11 @@ function renderTable(items) {
     "filtered-diagnostic-distribution",
     `Diagnostic coverage: ${documentedDiagnostics} documented · ${items.length - documentedDiagnostics} missing`,
   );
+  const assigned = items.filter((item) => Boolean(item.owner)).length;
+  setText(
+    "filtered-assignment-distribution",
+    `Assignment coverage: ${assigned} assigned · ${items.length - assigned} unassigned`,
+  );
   const pageCount = Math.max(1, Math.ceil(ordered.length / pageSize));
   page = Math.min(page, pageCount);
   const start = (page - 1) * pageSize;
