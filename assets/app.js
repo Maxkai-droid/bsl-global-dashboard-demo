@@ -1345,6 +1345,11 @@ function renderTable(items) {
     "filtered-repair-distribution",
     `Repair coverage: ${repaired} with repair · ${items.length - repaired} without repair`,
   );
+  const documentedDiagnostics = items.filter(hasDiagnostic).length;
+  setText(
+    "filtered-diagnostic-distribution",
+    `Diagnostic coverage: ${documentedDiagnostics} documented · ${items.length - documentedDiagnostics} missing`,
+  );
   const pageCount = Math.max(1, Math.ceil(ordered.length / pageSize));
   page = Math.min(page, pageCount);
   const start = (page - 1) * pageSize;
