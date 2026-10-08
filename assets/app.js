@@ -1355,6 +1355,11 @@ function renderTable(items) {
     "filtered-assignment-distribution",
     `Assignment coverage: ${assigned} assigned · ${items.length - assigned} unassigned`,
   );
+  const delayRecorded = items.filter((item) => Boolean(item.delay_recorded)).length;
+  setText(
+    "filtered-delay-distribution",
+    `Delay context: ${delayRecorded} recorded · ${items.length - delayRecorded} missing`,
+  );
   const pageCount = Math.max(1, Math.ceil(ordered.length / pageSize));
   page = Math.min(page, pageCount);
   const start = (page - 1) * pageSize;
