@@ -1340,6 +1340,11 @@ function renderTable(items) {
     "filtered-validation-distribution",
     `Validation: ${validationDistribution || "None"}`,
   );
+  const repaired = items.filter((item) => Number(item.repair_count || 0) > 0).length;
+  setText(
+    "filtered-repair-distribution",
+    `Repair coverage: ${repaired} with repair · ${items.length - repaired} without repair`,
+  );
   const pageCount = Math.max(1, Math.ceil(ordered.length / pageSize));
   page = Math.min(page, pageCount);
   const start = (page - 1) * pageSize;
