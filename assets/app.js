@@ -1360,6 +1360,11 @@ function renderTable(items) {
     "filtered-delay-distribution",
     `Delay context: ${delayRecorded} recorded · ${items.length - delayRecorded} missing`,
   );
+  const needsHumanReview = items.filter((item) => Boolean(item.ai_review)).length;
+  setText(
+    "filtered-review-distribution",
+    `Review status: ${needsHumanReview} needs human review · ${items.length - needsHumanReview} without review flag`,
+  );
   const pageCount = Math.max(1, Math.ceil(ordered.length / pageSize));
   page = Math.min(page, pageCount);
   const start = (page - 1) * pageSize;
