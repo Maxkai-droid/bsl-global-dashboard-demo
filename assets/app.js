@@ -1452,6 +1452,13 @@ function renderTable(items) {
     "filtered-production-stage-distribution",
     `Production-stage context: ${documentedProductionStages} documented · ${items.length - documentedProductionStages} missing`,
   );
+  const documentedProductManufacturers = items.filter(
+    (item) => Boolean(item.detail?.product_manufacturer),
+  ).length;
+  setText(
+    "filtered-product-manufacturer-distribution",
+    `Product-manufacturer context: ${documentedProductManufacturers} documented · ${items.length - documentedProductManufacturers} missing`,
+  );
   const delayRecorded = items.filter((item) => Boolean(item.delay_recorded)).length;
   setText(
     "filtered-delay-distribution",
