@@ -1345,6 +1345,12 @@ function renderTable(items) {
     "filtered-repair-distribution",
     `Repair coverage: ${repaired} with repair · ${items.length - repaired} without repair`,
   );
+  const oneRepair = items.filter((item) => Number(item.repair_count || 0) === 1).length;
+  const multipleRepairs = items.filter((item) => Number(item.repair_count || 0) > 1).length;
+  setText(
+    "filtered-repair-depth-distribution",
+    `Repair depth: ${items.length - oneRepair - multipleRepairs} none · ${oneRepair} one · ${multipleRepairs} multiple`,
+  );
   const documentedDiagnostics = items.filter(hasDiagnostic).length;
   setText(
     "filtered-diagnostic-distribution",
