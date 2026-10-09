@@ -1417,6 +1417,13 @@ function renderTable(items) {
     "filtered-quantity-evidence-distribution",
     `Quantity evidence: ${documentedQuantityEvidence} documented · ${items.length - documentedQuantityEvidence} missing`,
   );
+  const documentedBuildingBlockEvidence = items.filter(
+    (item) => Boolean(item.detail?.building_block_evidence),
+  ).length;
+  setText(
+    "filtered-building-block-evidence-distribution",
+    `Building block evidence: ${documentedBuildingBlockEvidence} documented · ${items.length - documentedBuildingBlockEvidence} missing`,
+  );
   const delayRecorded = items.filter((item) => Boolean(item.delay_recorded)).length;
   setText(
     "filtered-delay-distribution",
