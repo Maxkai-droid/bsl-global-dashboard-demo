@@ -1431,6 +1431,13 @@ function renderTable(items) {
     "filtered-failure-evidence-distribution",
     `Failure evidence rationale: ${documentedFailureEvidence} documented · ${items.length - documentedFailureEvidence} missing`,
   );
+  const documentedAffectedServers = items.filter(
+    (item) => Boolean(item.detail?.affected_servers),
+  ).length;
+  setText(
+    "filtered-affected-server-distribution",
+    `Affected-server context: ${documentedAffectedServers} documented · ${items.length - documentedAffectedServers} missing`,
+  );
   const delayRecorded = items.filter((item) => Boolean(item.delay_recorded)).length;
   setText(
     "filtered-delay-distribution",
