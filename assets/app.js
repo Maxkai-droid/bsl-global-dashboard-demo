@@ -1351,6 +1351,12 @@ function renderTable(items) {
     "filtered-repair-depth-distribution",
     `Repair depth: ${items.length - oneRepair - multipleRepairs} none · ${oneRepair} one · ${multipleRepairs} multiple`,
   );
+  const oneUnit = items.filter((item) => Number(item.units_impacted || 0) === 1).length;
+  const multipleUnits = items.filter((item) => Number(item.units_impacted || 0) > 1).length;
+  setText(
+    "filtered-quantity-distribution",
+    `Quantity impact: ${items.length - oneUnit - multipleUnits} none · ${oneUnit} one unit · ${multipleUnits} multiple units`,
+  );
   const documentedDiagnostics = items.filter(hasDiagnostic).length;
   setText(
     "filtered-diagnostic-distribution",
