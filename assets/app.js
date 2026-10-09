@@ -1365,6 +1365,11 @@ function renderTable(items) {
     "filtered-review-distribution",
     `Review status: ${needsHumanReview} needs human review · ${items.length - needsHumanReview} without review flag`,
   );
+  const openLifecycle = items.filter(isOpen).length;
+  setText(
+    "filtered-lifecycle-distribution",
+    `Lifecycle: ${openLifecycle} open · ${items.length - openLifecycle} closed`,
+  );
   const pageCount = Math.max(1, Math.ceil(ordered.length / pageSize));
   page = Math.min(page, pageCount);
   const start = (page - 1) * pageSize;
