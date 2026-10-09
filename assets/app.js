@@ -1410,6 +1410,13 @@ function renderTable(items) {
     "filtered-root-cause-distribution",
     `Root-cause coverage: ${documentedRootCauses} documented · ${items.length - documentedRootCauses} missing`,
   );
+  const documentedQuantityEvidence = items.filter(
+    (item) => Boolean(item.detail?.quantity_evidence),
+  ).length;
+  setText(
+    "filtered-quantity-evidence-distribution",
+    `Quantity evidence: ${documentedQuantityEvidence} documented · ${items.length - documentedQuantityEvidence} missing`,
+  );
   const delayRecorded = items.filter((item) => Boolean(item.delay_recorded)).length;
   setText(
     "filtered-delay-distribution",
