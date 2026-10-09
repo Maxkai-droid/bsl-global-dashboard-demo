@@ -1370,6 +1370,11 @@ function renderTable(items) {
     "filtered-lifecycle-distribution",
     `Lifecycle: ${openLifecycle} open · ${items.length - openLifecycle} closed`,
   );
+  const createdThisWeek = items.filter((item) => Boolean(item.created_this_week)).length;
+  setText(
+    "filtered-creation-distribution",
+    `Created: ${createdThisWeek} this week · ${items.length - createdThisWeek} earlier`,
+  );
   const pageCount = Math.max(1, Math.ceil(ordered.length / pageSize));
   page = Math.min(page, pageCount);
   const start = (page - 1) * pageSize;
