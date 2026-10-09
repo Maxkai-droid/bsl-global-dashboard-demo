@@ -1391,6 +1391,18 @@ function renderTable(items) {
     "filtered-building-block-coverage-distribution",
     `Building block coverage: ${identifiedBuildingBlocks} identified · ${items.length - identifiedBuildingBlocks} missing`,
   );
+  const confidenceCounts = {high: 0, medium: 0, low: 0, missing: 0};
+  items.forEach((item) => {
+    const confidence = String(item.detail?.confidence || "").trim();
+    if (confidence === "High" || confidence === "Confirmed") confidenceCounts.high += 1;
+    else if (confidence === "Medium") confidenceCounts.medium += 1;
+    else if (confidence === "Low") confidenceCounts.low += 1;
+    else confidenceCounts.missing += 1;
+  });
+  setText(
+    "filtered-confidence-distribution",
+    `Assessment confidence: ${confidenceCounts.high} high/confirmed · ${confidenceCounts.medium} medium · ${confidenceCounts.low} low · ${confidenceCounts.missing} missing`,
+  );
   const delayRecorded = items.filter((item) => Boolean(item.delay_recorded)).length;
   setText(
     "filtered-delay-distribution",
