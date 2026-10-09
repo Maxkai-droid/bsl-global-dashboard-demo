@@ -1375,6 +1375,12 @@ function renderTable(items) {
     "filtered-creation-distribution",
     `Created: ${createdThisWeek} this week · ${items.length - createdThisWeek} earlier`,
   );
+  const closedThisWeek = items.filter((item) => Boolean(item.closed_this_week)).length;
+  const openForClosure = items.filter(isOpen).length;
+  setText(
+    "filtered-closure-distribution",
+    `Closure: ${closedThisWeek} this week · ${items.length - closedThisWeek - openForClosure} other closed · ${openForClosure} open`,
+  );
   const pageCount = Math.max(1, Math.ceil(ordered.length / pageSize));
   page = Math.min(page, pageCount);
   const start = (page - 1) * pageSize;
