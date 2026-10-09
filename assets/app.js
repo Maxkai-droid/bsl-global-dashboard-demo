@@ -1350,6 +1350,16 @@ function renderTable(items) {
     "filtered-diagnostic-distribution",
     `Diagnostic coverage: ${documentedDiagnostics} documented · ${items.length - documentedDiagnostics} missing`,
   );
+  const failureCodeDiagnostics = items.filter(
+    (item) => Array.isArray(item.failure_codes) && item.failure_codes.length > 0,
+  ).length;
+  const errorOnlyDiagnostics = items.filter(
+    (item) => (!item.failure_codes || item.failure_codes.length === 0) && Boolean(item.failure_error),
+  ).length;
+  setText(
+    "filtered-diagnostic-source-distribution",
+    `Diagnostic source: ${failureCodeDiagnostics} failure code · ${errorOnlyDiagnostics} error only · ${items.length - failureCodeDiagnostics - errorOnlyDiagnostics} missing`,
+  );
   const assigned = items.filter((item) => Boolean(item.owner)).length;
   setText(
     "filtered-assignment-distribution",
