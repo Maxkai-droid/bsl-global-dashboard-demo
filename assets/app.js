@@ -1438,6 +1438,13 @@ function renderTable(items) {
     "filtered-affected-server-distribution",
     `Affected-server context: ${documentedAffectedServers} documented · ${items.length - documentedAffectedServers} missing`,
   );
+  const documentedSuppliers = items.filter(
+    (item) => Boolean(item.detail?.supplier),
+  ).length;
+  setText(
+    "filtered-supplier-distribution",
+    `Supplier context: ${documentedSuppliers} documented · ${items.length - documentedSuppliers} missing`,
+  );
   const delayRecorded = items.filter((item) => Boolean(item.delay_recorded)).length;
   setText(
     "filtered-delay-distribution",
