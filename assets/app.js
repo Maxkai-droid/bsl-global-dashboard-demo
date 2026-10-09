@@ -1466,6 +1466,13 @@ function renderTable(items) {
     "filtered-product-name-distribution",
     `Product-name context: ${documentedProductNames} documented · ${items.length - documentedProductNames} missing`,
   );
+  const documentedProductSerials = items.filter(
+    (item) => Boolean(item.detail?.product_serial_number),
+  ).length;
+  setText(
+    "filtered-product-serial-distribution",
+    `Product-serial context: ${documentedProductSerials} documented · ${items.length - documentedProductSerials} missing`,
+  );
   const delayRecorded = items.filter((item) => Boolean(item.delay_recorded)).length;
   setText(
     "filtered-delay-distribution",
