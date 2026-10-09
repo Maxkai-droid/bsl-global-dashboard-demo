@@ -1403,6 +1403,13 @@ function renderTable(items) {
     "filtered-confidence-distribution",
     `Assessment confidence: ${confidenceCounts.high} high/confirmed · ${confidenceCounts.medium} medium · ${confidenceCounts.low} low · ${confidenceCounts.missing} missing`,
   );
+  const documentedRootCauses = items.filter(
+    (item) => Boolean(item.detail?.root_cause),
+  ).length;
+  setText(
+    "filtered-root-cause-distribution",
+    `Root-cause coverage: ${documentedRootCauses} documented · ${items.length - documentedRootCauses} missing`,
+  );
   const delayRecorded = items.filter((item) => Boolean(item.delay_recorded)).length;
   setText(
     "filtered-delay-distribution",
