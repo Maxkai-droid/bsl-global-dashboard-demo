@@ -1473,6 +1473,13 @@ function renderTable(items) {
     "filtered-product-serial-distribution",
     `Product-serial context: ${documentedProductSerials} documented · ${items.length - documentedProductSerials} missing`,
   );
+  const documentedAssessmentSummaries = items.filter(
+    (item) => Boolean(item.detail?.ai_summary),
+  ).length;
+  setText(
+    "filtered-assessment-summary-distribution",
+    `Assessment-summary context: ${documentedAssessmentSummaries} documented · ${items.length - documentedAssessmentSummaries} missing`,
+  );
   const delayRecorded = items.filter((item) => Boolean(item.delay_recorded)).length;
   setText(
     "filtered-delay-distribution",
