@@ -1382,6 +1382,16 @@ function renderTable(items) {
     "filtered-delay-distribution",
     `Delay context: ${delayRecorded} recorded · ${items.length - delayRecorded} missing`,
   );
+  const shortDelay = items.filter(
+    (item) => item.delay_recorded && Number(item.delay_hours || 0) <= 24,
+  ).length;
+  const extendedDelay = items.filter(
+    (item) => item.delay_recorded && Number(item.delay_hours || 0) > 24,
+  ).length;
+  setText(
+    "filtered-delay-magnitude-distribution",
+    `Delay magnitude: ${items.length - shortDelay - extendedDelay} none · ${shortDelay} ≤24h · ${extendedDelay} >24h`,
+  );
   const needsHumanReview = items.filter((item) => Boolean(item.ai_review)).length;
   setText(
     "filtered-review-distribution",
