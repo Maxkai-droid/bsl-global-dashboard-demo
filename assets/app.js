@@ -1480,6 +1480,13 @@ function renderTable(items) {
     "filtered-assessment-summary-distribution",
     `Assessment-summary context: ${documentedAssessmentSummaries} documented · ${items.length - documentedAssessmentSummaries} missing`,
   );
+  const documentedBslAttributions = items.filter(
+    (item) => Boolean(item.detail?.bsl_attribution),
+  ).length;
+  setText(
+    "filtered-bsl-attribution-distribution",
+    `BSL-attribution context: ${documentedBslAttributions} documented · ${items.length - documentedBslAttributions} missing`,
+  );
   const delayRecorded = items.filter((item) => Boolean(item.delay_recorded)).length;
   setText(
     "filtered-delay-distribution",
