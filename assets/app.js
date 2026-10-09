@@ -1384,6 +1384,13 @@ function renderTable(items) {
     "filtered-building-block-source-distribution",
     `Building block provenance: ${aiExtractedBuildingBlocks} AI extracted · ${items.length - aiExtractedBuildingBlocks} non-AI`,
   );
+  const identifiedBuildingBlocks = items.filter(
+    (item) => Boolean(item.building_block),
+  ).length;
+  setText(
+    "filtered-building-block-coverage-distribution",
+    `Building block coverage: ${identifiedBuildingBlocks} identified · ${items.length - identifiedBuildingBlocks} missing`,
+  );
   const delayRecorded = items.filter((item) => Boolean(item.delay_recorded)).length;
   setText(
     "filtered-delay-distribution",
