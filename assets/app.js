@@ -1487,6 +1487,13 @@ function renderTable(items) {
     "filtered-bsl-attribution-distribution",
     `BSL-attribution context: ${documentedBslAttributions} documented · ${items.length - documentedBslAttributions} missing`,
   );
+  const documentedCategories = items.filter(
+    (item) => Boolean(item.detail?.category),
+  ).length;
+  setText(
+    "filtered-category-distribution",
+    `Assessment-category context: ${documentedCategories} documented · ${items.length - documentedCategories} missing`,
+  );
   const delayRecorded = items.filter((item) => Boolean(item.delay_recorded)).length;
   setText(
     "filtered-delay-distribution",
