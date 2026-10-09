@@ -1392,6 +1392,12 @@ function renderTable(items) {
     "filtered-delay-magnitude-distribution",
     `Delay magnitude: ${items.length - shortDelay - extendedDelay} none · ${shortDelay} ≤24h · ${extendedDelay} >24h`,
   );
+  const highAttentionBand = items.filter((item) => attention(item) === "high").length;
+  const watchAttentionBand = items.filter((item) => attention(item) === "watch").length;
+  setText(
+    "filtered-attention-distribution",
+    `Attention: ${highAttentionBand} High · ${watchAttentionBand} Watch · ${items.length - highAttentionBand - watchAttentionBand} Routine`,
+  );
   const needsHumanReview = items.filter((item) => Boolean(item.ai_review)).length;
   setText(
     "filtered-review-distribution",
