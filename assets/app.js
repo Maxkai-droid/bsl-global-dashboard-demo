@@ -1445,6 +1445,13 @@ function renderTable(items) {
     "filtered-supplier-distribution",
     `Supplier context: ${documentedSuppliers} documented · ${items.length - documentedSuppliers} missing`,
   );
+  const documentedProductionStages = items.filter(
+    (item) => Boolean(item.detail?.production_stage),
+  ).length;
+  setText(
+    "filtered-production-stage-distribution",
+    `Production-stage context: ${documentedProductionStages} documented · ${items.length - documentedProductionStages} missing`,
+  );
   const delayRecorded = items.filter((item) => Boolean(item.delay_recorded)).length;
   setText(
     "filtered-delay-distribution",
