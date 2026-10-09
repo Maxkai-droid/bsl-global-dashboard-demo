@@ -1377,6 +1377,13 @@ function renderTable(items) {
     "filtered-assignment-distribution",
     `Assignment coverage: ${assigned} assigned · ${items.length - assigned} unassigned`,
   );
+  const aiExtractedBuildingBlocks = items.filter(
+    (item) => Boolean(item.building_block_ai_verified),
+  ).length;
+  setText(
+    "filtered-building-block-source-distribution",
+    `Building block provenance: ${aiExtractedBuildingBlocks} AI extracted · ${items.length - aiExtractedBuildingBlocks} non-AI`,
+  );
   const delayRecorded = items.filter((item) => Boolean(item.delay_recorded)).length;
   setText(
     "filtered-delay-distribution",
