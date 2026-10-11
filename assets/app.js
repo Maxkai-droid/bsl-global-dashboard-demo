@@ -1531,6 +1531,14 @@ function renderTable(items) {
     "filtered-discussion-distribution",
     `ADO discussion depth: ${items.length - lightDiscussion - activeDiscussion} no comments · ${lightDiscussion} 1–2 · ${activeDiscussion} 3+`,
   );
+  const analysisConfidence = (item) => item.detail?.comment_analysis?.confidence || "";
+  const highAnalysis = items.filter((item) => analysisConfidence(item) === "high").length;
+  const mediumAnalysis = items.filter((item) => analysisConfidence(item) === "medium").length;
+  const lowAnalysis = items.filter((item) => analysisConfidence(item) === "low").length;
+  setText(
+    "filtered-analysis-confidence-distribution",
+    `AI analysis confidence: ${highAnalysis} high · ${mediumAnalysis} medium · ${lowAnalysis} low · ${items.length - highAnalysis - mediumAnalysis - lowAnalysis} none`,
+  );
   const blockerCode = (item) => item.detail?.comment_analysis?.failure_reason_code || "";
   const imageReviewBlocked = items.filter(
     (item) => blockerCode(item) === "image_evidence_review_required",
