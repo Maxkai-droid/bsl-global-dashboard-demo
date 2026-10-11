@@ -1531,6 +1531,15 @@ function renderTable(items) {
     "filtered-discussion-distribution",
     `ADO discussion depth: ${items.length - lightDiscussion - activeDiscussion} no comments · ${lightDiscussion} 1–2 · ${activeDiscussion} 3+`,
   );
+  const ownerLoad = new Map();
+  items.forEach((item) => {
+    const owner = String(item.owner || "").trim();
+    if (owner) ownerLoad.set(owner, (ownerLoad.get(owner) || 0) + 1);
+  });
+  setText(
+    "filtered-owner-load-distribution",
+    `Owner load: ${ownerLoad.size} owner(s) · max ${Math.max(0, ...ownerLoad.values())} item(s) per owner`,
+  );
   const analysisStatus = (item) => item.detail?.comment_analysis?.status || "";
   const completeAnalysis = items.filter((item) =>
     ["assessed", "reviewed", "created", "updated"].includes(analysisStatus(item)),
