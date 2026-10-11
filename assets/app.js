@@ -1300,6 +1300,13 @@ function renderTable(items) {
     "filtered-state-distribution",
     `State: ${stateDistribution || "None"}`,
   );
+  const openImpactItems = items.filter(
+    (item) => isOpen(item) && Number(item.units_impacted || 0) > 0,
+  );
+  setText(
+    "filtered-open-impact-distribution",
+    `Open impact: ${openImpactItems.reduce((total, item) => total + Number(item.units_impacted || 0), 0)} unit(s) across ${openImpactItems.length} open item(s) with quantity`,
+  );
   const openSeverity = (severity) =>
     items.filter((item) => isOpen(item) && item.severity === severity).length;
   setText(
