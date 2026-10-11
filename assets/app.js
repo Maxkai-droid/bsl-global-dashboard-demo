@@ -1504,6 +1504,17 @@ function renderTable(items) {
     "filtered-delay-window-distribution",
     `Delay-window context: ${completeDelayWindows} complete · ${partialDelayWindows} partial · ${items.length - completeDelayWindows - partialDelayWindows} missing`,
   );
+  const commentCount = (item) =>
+    Math.max(0, Number(item.detail?.comment_analysis?.comment_count) || 0);
+  const lightDiscussion = items.filter((item) => {
+    const count = commentCount(item);
+    return count >= 1 && count <= 2;
+  }).length;
+  const activeDiscussion = items.filter((item) => commentCount(item) >= 3).length;
+  setText(
+    "filtered-discussion-distribution",
+    `ADO discussion depth: ${items.length - lightDiscussion - activeDiscussion} no comments · ${lightDiscussion} 1–2 · ${activeDiscussion} 3+`,
+  );
   const delayRecorded = items.filter((item) => Boolean(item.delay_recorded)).length;
   setText(
     "filtered-delay-distribution",
