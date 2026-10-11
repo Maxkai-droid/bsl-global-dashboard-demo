@@ -1524,6 +1524,18 @@ function renderTable(items) {
     "filtered-discussion-distribution",
     `ADO discussion depth: ${items.length - lightDiscussion - activeDiscussion} no comments · ${lightDiscussion} 1–2 · ${activeDiscussion} 3+`,
   );
+  const blockerCode = (item) => item.detail?.comment_analysis?.failure_reason_code || "";
+  const imageReviewBlocked = items.filter(
+    (item) => blockerCode(item) === "image_evidence_review_required",
+  ).length;
+  const guardBlocked = items.filter(
+    (item) => blockerCode(item) === "prompt_guard_blocked",
+  ).length;
+  const blockerClear = items.filter((item) => !blockerCode(item)).length;
+  setText(
+    "filtered-analysis-blocker-distribution",
+    `Analysis blockers: ${imageReviewBlocked} image review · ${guardBlocked} guard blocked · ${items.length - imageReviewBlocked - guardBlocked - blockerClear} failed · ${blockerClear} clear`,
+  );
   const delayRecorded = items.filter((item) => Boolean(item.delay_recorded)).length;
   setText(
     "filtered-delay-distribution",
