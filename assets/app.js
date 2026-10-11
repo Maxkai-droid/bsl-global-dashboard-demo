@@ -1300,6 +1300,12 @@ function renderTable(items) {
     "filtered-state-distribution",
     `State: ${stateDistribution || "None"}`,
   );
+  const openSeverity = (severity) =>
+    items.filter((item) => isOpen(item) && item.severity === severity).length;
+  setText(
+    "filtered-open-severity-distribution",
+    `Open by severity: ${openSeverity("1 - Critical")} critical · ${openSeverity("2 - High")} high · ${openSeverity("3 - Medium")} medium · ${openSeverity("4 - Low")} low`,
+  );
   const severityDistribution = [
     "1 - Critical",
     "2 - High",
