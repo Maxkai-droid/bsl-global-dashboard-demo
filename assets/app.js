@@ -1300,6 +1300,12 @@ function renderTable(items) {
     "filtered-state-distribution",
     `State: ${stateDistribution || "None"}`,
   );
+  const openReviewItems = items.filter((item) => isOpen(item));
+  const openNeedsHuman = openReviewItems.filter((item) => item.ai_review).length;
+  setText(
+    "filtered-open-review-distribution",
+    `Open review: ${openNeedsHuman} need human review · ${openReviewItems.length - openNeedsHuman} no flag`,
+  );
   const openValidation = (status) =>
     items.filter(
       (item) => isOpen(item) && (item.validation_status || "Pending") === status,
