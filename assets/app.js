@@ -1531,6 +1531,20 @@ function renderTable(items) {
     "filtered-discussion-distribution",
     `ADO discussion depth: ${items.length - lightDiscussion - activeDiscussion} no comments · ${lightDiscussion} 1–2 · ${activeDiscussion} 3+`,
   );
+  const analysisStatus = (item) => item.detail?.comment_analysis?.status || "";
+  const completeAnalysis = items.filter((item) =>
+    ["assessed", "reviewed", "created", "updated"].includes(analysisStatus(item)),
+  ).length;
+  const imageReviewAnalysis = items.filter(
+    (item) => analysisStatus(item) === "image_review_required",
+  ).length;
+  const blockedAnalysis = items.filter((item) =>
+    ["blocked", "error"].includes(analysisStatus(item)),
+  ).length;
+  setText(
+    "filtered-analysis-status-distribution",
+    `AI analysis status: ${completeAnalysis} complete · ${imageReviewAnalysis} image review · ${blockedAnalysis} blocked · ${items.length - completeAnalysis - imageReviewAnalysis - blockedAnalysis} not analyzed`,
+  );
   const analysisConfidence = (item) => item.detail?.comment_analysis?.confidence || "";
   const highAnalysis = items.filter((item) => analysisConfidence(item) === "high").length;
   const mediumAnalysis = items.filter((item) => analysisConfidence(item) === "medium").length;
