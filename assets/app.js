@@ -1494,6 +1494,16 @@ function renderTable(items) {
     "filtered-category-distribution",
     `Assessment-category context: ${documentedCategories} documented · ${items.length - documentedCategories} missing`,
   );
+  const completeDelayWindows = items.filter(
+    (item) => Boolean(item.detail?.delay_start && item.detail?.delay_end),
+  ).length;
+  const partialDelayWindows = items.filter(
+    (item) => Boolean(item.detail?.delay_start) !== Boolean(item.detail?.delay_end),
+  ).length;
+  setText(
+    "filtered-delay-window-distribution",
+    `Delay-window context: ${completeDelayWindows} complete · ${partialDelayWindows} partial · ${items.length - completeDelayWindows - partialDelayWindows} missing`,
+  );
   const delayRecorded = items.filter((item) => Boolean(item.delay_recorded)).length;
   setText(
     "filtered-delay-distribution",
