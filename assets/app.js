@@ -1352,6 +1352,20 @@ function renderTable(items) {
     "filtered-severity-distribution",
     `Severity: ${severityDistribution || "None"}`,
   );
+  const openClassificationDistribution = [...payloadFailureClasses]
+    .map((classification) => [
+      classification,
+      items.filter(
+        (item) => isOpen(item) && item.classification === classification,
+      ).length,
+    ])
+    .filter(([, count]) => count)
+    .map(([classification, count]) => `${classification} ${count}`)
+    .join(" · ");
+  setText(
+    "filtered-open-classification-distribution",
+    `Open by classification: ${openClassificationDistribution || "None"}`,
+  );
   const classificationDistribution = [...payloadFailureClasses]
     .map((classification) => [
       classification,
