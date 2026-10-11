@@ -1300,6 +1300,15 @@ function renderTable(items) {
     "filtered-state-distribution",
     `State: ${stateDistribution || "None"}`,
   );
+  const openRepairItems = items.filter((item) => isOpen(item));
+  const openRepaired = openRepairItems.filter((item) => Number(item.repair_count || 0) > 0);
+  const openFinal = openRepaired.filter((item) =>
+    (item.detail?.repairs || []).some((repair) => repair.is_final === true),
+  ).length;
+  setText(
+    "filtered-open-repair-distribution",
+    `Open repair progress: ${openFinal} final repair · ${openRepaired.length - openFinal} in progress · ${openRepairItems.length - openRepaired.length} no repair`,
+  );
   const openReviewItems = items.filter((item) => isOpen(item));
   const openNeedsHuman = openReviewItems.filter((item) => item.ai_review).length;
   setText(
