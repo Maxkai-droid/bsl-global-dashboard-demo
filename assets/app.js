@@ -1574,6 +1574,17 @@ function renderTable(items) {
   );
   const closedThisWeek = items.filter((item) => Boolean(item.closed_this_week)).length;
   const openForClosure = items.filter(isOpen).length;
+  const resolvedDays = (item) => item.resolution_days ?? null;
+  const fastResolved = items.filter(
+    (item) => !isOpen(item) && resolvedDays(item) !== null && Number(item.resolution_days) <= 7,
+  ).length;
+  const slowResolved = items.filter(
+    (item) => !isOpen(item) && resolvedDays(item) !== null && Number(item.resolution_days) > 7,
+  ).length;
+  setText(
+    "filtered-resolution-speed-distribution",
+    `Resolution speed: ${fastResolved} ≤7d · ${slowResolved} >7d · ${items.length - openForClosure - fastResolved - slowResolved} unknown · ${openForClosure} open`,
+  );
   setText(
     "filtered-closure-distribution",
     `Closure: ${closedThisWeek} this week · ${items.length - closedThisWeek - openForClosure} other closed · ${openForClosure} open`,
