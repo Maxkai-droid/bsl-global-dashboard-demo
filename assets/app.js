@@ -1450,6 +1450,14 @@ function renderTable(items) {
     "filtered-building-block-source-distribution",
     `Building block provenance: ${aiExtractedBuildingBlocks} AI extracted · ${items.length - aiExtractedBuildingBlocks} non-AI`,
   );
+  const openBuildingBlockItems = items.filter((item) => isOpen(item));
+  const openIdentifiedBuildingBlocks = openBuildingBlockItems.filter(
+    (item) => Boolean(item.building_block),
+  ).length;
+  setText(
+    "filtered-open-building-block-distribution",
+    `Open building block coverage: ${openIdentifiedBuildingBlocks} identified · ${openBuildingBlockItems.length - openIdentifiedBuildingBlocks} missing`,
+  );
   const identifiedBuildingBlocks = items.filter(
     (item) => Boolean(item.building_block),
   ).length;
