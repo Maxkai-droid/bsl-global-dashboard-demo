@@ -1632,6 +1632,12 @@ function renderTable(items) {
     "filtered-analysis-blocker-distribution",
     `Analysis blockers: ${imageReviewBlocked} image review · ${guardBlocked} guard blocked · ${items.length - imageReviewBlocked - guardBlocked - blockerClear} failed · ${blockerClear} clear`,
   );
+  const openDelayItems = items.filter((item) => isOpen(item));
+  const openDelayRecorded = openDelayItems.filter((item) => Boolean(item.delay_recorded)).length;
+  setText(
+    "filtered-open-delay-distribution",
+    `Open delay context: ${openDelayRecorded} recorded · ${openDelayItems.length - openDelayRecorded} missing`,
+  );
   const delayRecorded = items.filter((item) => Boolean(item.delay_recorded)).length;
   setText(
     "filtered-delay-distribution",
