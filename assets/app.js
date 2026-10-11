@@ -1300,6 +1300,14 @@ function renderTable(items) {
     "filtered-state-distribution",
     `State: ${stateDistribution || "None"}`,
   );
+  const openValidation = (status) =>
+    items.filter(
+      (item) => isOpen(item) && (item.validation_status || "Pending") === status,
+    ).length;
+  setText(
+    "filtered-open-validation-distribution",
+    `Open by validation: ${openValidation("Pending")} pending · ${openValidation("Under review")} under review · ${openValidation("Confirmed")} confirmed · ${openValidation("Closed")} closed`,
+  );
   const openImpactItems = items.filter(
     (item) => isOpen(item) && Number(item.units_impacted || 0) > 0,
   );
