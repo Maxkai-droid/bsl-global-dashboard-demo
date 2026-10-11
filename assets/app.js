@@ -1381,6 +1381,13 @@ function renderTable(items) {
     "filtered-diagnostic-source-distribution",
     `Diagnostic source: ${failureCodeDiagnostics} failure code · ${errorOnlyDiagnostics} error only · ${items.length - failureCodeDiagnostics - errorOnlyDiagnostics} missing`,
   );
+  const failureCodeCount = (item) => (item.failure_codes || []).length;
+  const singleFailureCode = items.filter((item) => failureCodeCount(item) === 1).length;
+  const multipleFailureCodes = items.filter((item) => failureCodeCount(item) > 1).length;
+  setText(
+    "filtered-failure-code-count-distribution",
+    `Failure codes per item: ${items.length - singleFailureCode - multipleFailureCodes} none · ${singleFailureCode} single · ${multipleFailureCodes} multiple`,
+  );
   const assigned = items.filter((item) => Boolean(item.owner)).length;
   setText(
     "filtered-assignment-distribution",
