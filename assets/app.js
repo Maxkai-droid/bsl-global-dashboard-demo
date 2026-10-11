@@ -1351,6 +1351,15 @@ function renderTable(items) {
     "filtered-repair-depth-distribution",
     `Repair depth: ${items.length - oneRepair - multipleRepairs} none · ${oneRepair} one · ${multipleRepairs} multiple`,
   );
+  const finalRepairs = items.filter(
+    (item) => Number(item.repair_count || 0) > 0
+      && (item.detail?.repairs || []).some((repair) => repair.is_final === true),
+  ).length;
+  const openRepairs = repaired - finalRepairs;
+  setText(
+    "filtered-repair-finality-distribution",
+    `Repair finality: ${finalRepairs} final · ${openRepairs} open · ${items.length - repaired} none`,
+  );
   const oneUnit = items.filter((item) => Number(item.units_impacted || 0) === 1).length;
   const multipleUnits = items.filter((item) => Number(item.units_impacted || 0) > 1).length;
   setText(
